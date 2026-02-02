@@ -891,34 +891,75 @@
                 <div class="bg-white rounded-xl shadow-sm p-6">
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Spreadsheet ID</label>
-                            <input type="text" id="spreadsheetId" placeholder="1h7VCFxncf--Ksv-I79sk9N1gUCNn7p_Kz6NByyiyrpk" class="w-full px-4 py-3 border rounded-lg">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Web App URL (Google Apps Script) <span class="text-red-500">*</span></label>
+                            <input type="text" id="webAppUrl" placeholder="https://script.google.com/macros/s/xxxxx/exec" class="w-full px-4 py-3 border rounded-lg font-mono text-sm">
+                            <p class="text-xs text-gray-500 mt-1">URL dari Google Apps Script yang sudah di-deploy</p>
                         </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">API Key</label>
-                            <input type="password" id="apiKey" placeholder="Masukkan API Key" class="w-full px-4 py-3 border rounded-lg">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Spreadsheet ID <span class="text-gray-400">(opsional)</span></label>
+                                <input type="text" id="spreadsheetId" placeholder="ID dari URL Spreadsheet" class="w-full px-4 py-3 border rounded-lg">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">API Key <span class="text-gray-400">(opsional)</span></label>
+                                <input type="password" id="apiKey" placeholder="Tidak diperlukan untuk Web App" class="w-full px-4 py-3 border rounded-lg">
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Web App URL (Google Apps Script)</label>
-                            <input type="text" id="webAppUrl" placeholder="https://script.google.com/macros/s/AKfycbwC3AjJcYmzAswX3Vlhed8bYydlx7DCAyfWZ1Vzyan97-bRTb7QXB27kF2vRjE-Skw/exec" class="w-full px-4 py-3 border rounded-lg">
+                        
+                        <!-- Status Koneksi -->
+                        <div id="connectionStatus" class="p-4 bg-gray-50 rounded-lg hidden">
+                            <div class="flex items-center gap-3">
+                                <div id="connStatusIcon" class="w-4 h-4 rounded-full bg-gray-300"></div>
+                                <span id="connStatusText" class="text-sm text-gray-600">Belum terhubung</span>
+                            </div>
                         </div>
-                        <div class="flex gap-4">
-                            <button onclick="saveSpreadsheetConfig()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">
-                                <i class="fas fa-save mr-2"></i>Simpan Konfigurasi
+                        
+                        <!-- Tombol Aksi -->
+                        <div class="flex flex-wrap gap-3">
+                            <button onclick="saveSpreadsheetConfig()" class="bg-blue-600 text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 transition-all">
+                                <i class="fas fa-save mr-2"></i>Simpan
                             </button>
-                            <button onclick="testConnection()" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700">
-                                <i class="fas fa-plug mr-2"></i>Test Koneksi
+                            <button onclick="testConnection()" class="bg-green-600 text-white px-5 py-2.5 rounded-lg hover:bg-green-700 transition-all">
+                                <i class="fas fa-plug mr-2"></i>Test & Sync ke Cloud
+                            </button>
+                            <button onclick="pullDataFromCloud()" class="bg-purple-600 text-white px-5 py-2.5 rounded-lg hover:bg-purple-700 transition-all">
+                                <i class="fas fa-cloud-download-alt mr-2"></i>Unduh dari Cloud
                             </button>
                         </div>
                     </div>
+                    
+                    <!-- Panduan -->
                     <div class="mt-6 p-4 bg-blue-50 rounded-lg">
-                        <h4 class="font-medium text-blue-800 mb-2"><i class="fas fa-info-circle mr-2"></i>Panduan Integrasi</h4>
-                        <ol class="text-sm text-blue-700 space-y-1 list-decimal ml-4">
-                            <li>Buat Google Spreadsheet baru dengan sheet: Jadwal, Tugas, Checklist, Inventori, LogBook, Feedback, Reject</li>
-                            <li>Buat Google Apps Script dan deploy sebagai Web App</li>
-                            <li>Copy Spreadsheet ID dan Web App URL ke form di atas</li>
-                            <li>Test koneksi untuk memastikan berhasil</li>
+                        <h4 class="font-medium text-blue-800 mb-2"><i class="fas fa-info-circle mr-2"></i>Panduan Setup</h4>
+                        <ol class="text-sm text-blue-700 space-y-2 list-decimal ml-4">
+                            <li>Buat Google Spreadsheet baru</li>
+                            <li>Buka <strong>Extensions > Apps Script</strong></li>
+                            <li>Paste kode Google Apps Script (lihat dokumentasi)</li>
+                            <li>Jalankan fungsi <code class="bg-blue-100 px-1 rounded">testSetup</code> untuk membuat sheet otomatis</li>
+                            <li>Deploy: <strong>Deploy > New deployment > Web app</strong></li>
+                            <li>Set "Who has access" ke <strong>Anyone</strong></li>
+                            <li>Copy URL dan paste di form di atas</li>
+                            <li>Klik <strong>Test & Sync ke Cloud</strong></li>
                         </ol>
+                    </div>
+                    
+                    <!-- Info Sheets -->
+                    <div class="mt-4 p-4 bg-green-50 rounded-lg">
+                        <h4 class="font-medium text-green-800 mb-2"><i class="fas fa-table mr-2"></i>Sheet yang Akan Dibuat Otomatis</h4>
+                        <div class="flex flex-wrap gap-2 text-xs">
+                            <span class="bg-green-100 text-green-700 px-2 py-1 rounded">users</span>
+                            <span class="bg-green-100 text-green-700 px-2 py-1 rounded">outlets</span>
+                            <span class="bg-green-100 text-green-700 px-2 py-1 rounded">jadwal</span>
+                            <span class="bg-green-100 text-green-700 px-2 py-1 rounded">tugas</span>
+                            <span class="bg-green-100 text-green-700 px-2 py-1 rounded">preparation</span>
+                            <span class="bg-green-100 text-green-700 px-2 py-1 rounded">checklistItems</span>
+                            <span class="bg-green-100 text-green-700 px-2 py-1 rounded">reject</span>
+                            <span class="bg-green-100 text-green-700 px-2 py-1 rounded">inventori</span>
+                            <span class="bg-green-100 text-green-700 px-2 py-1 rounded">outStockLogs</span>
+                            <span class="bg-green-100 text-green-700 px-2 py-1 rounded">logbook</span>
+                            <span class="bg-green-100 text-green-700 px-2 py-1 rounded">feedback</span>
+                            <span class="bg-green-100 text-green-700 px-2 py-1 rounded">activities</span>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -2489,7 +2530,32 @@
                 case 'settings-checklist': loadChecklistSettings(); break;
                 case 'settings-outlet': loadOutlets(); break;
                 case 'settings-users': loadUsers(); break;
+                case 'spreadsheet': loadSpreadsheetConfig(); break;
                 case 'guidelines': /* static, no data loader needed */ break;
+            }
+        }
+        
+        function loadSpreadsheetConfig() {
+            const config = JSON.parse(localStorage.getItem('spreadsheetConfig') || '{}');
+            document.getElementById('webAppUrl').value = config.webAppUrl || '';
+            document.getElementById('spreadsheetId').value = config.spreadsheetId || '';
+            document.getElementById('apiKey').value = config.apiKey || '';
+            
+            // Show connection status
+            const statusDiv = document.getElementById('connectionStatus');
+            const statusIcon = document.getElementById('connStatusIcon');
+            const statusText = document.getElementById('connStatusText');
+            
+            if (config.webAppUrl) {
+                statusDiv.classList.remove('hidden');
+                statusIcon.className = 'w-4 h-4 rounded-full bg-green-500';
+                statusText.textContent = 'URL terkonfigurasi. Klik "Test & Sync" untuk memverifikasi.';
+                statusText.className = 'text-sm text-green-600';
+            } else {
+                statusDiv.classList.remove('hidden');
+                statusIcon.className = 'w-4 h-4 rounded-full bg-yellow-500';
+                statusText.textContent = 'Belum dikonfigurasi. Masukkan Web App URL.';
+                statusText.className = 'text-sm text-yellow-600';
             }
         }
 
@@ -4433,21 +4499,192 @@
         // ==================== SPREADSHEET ====================
         function saveSpreadsheetConfig() {
             const config = {
-                spreadsheetId: document.getElementById('1h7VCFxncf--Ksv-I79sk9N1gUCNn7p_Kz6NByyiyrpk').value,
+                spreadsheetId: document.getElementById('spreadsheetId').value,
                 apiKey: document.getElementById('apiKey').value,
-                webAppUrl: document.getElementById('https://script.google.com/macros/s/AKfycbwC3AjJcYmzAswX3Vlhed8bYydlx7DCAyfWZ1Vzyan97-bRTb7QXB27kF2vRjE-Skw/exec').value
+                webAppUrl: document.getElementById('webAppUrl').value.trim()
             };
+            
+            if (!config.webAppUrl) {
+                showToast('Web App URL wajib diisi!');
+                return;
+            }
+            
             localStorage.setItem('spreadsheetConfig', JSON.stringify(config));
+            
+            // Update syncManager config
+            if (typeof syncManager !== 'undefined') {
+                syncManager.apiUrl = config.webAppUrl;
+            }
+            
             showToast('Konfigurasi berhasil disimpan!');
         }
 
-        function testConnection() {
+        async function testConnection() {
             const config = JSON.parse(localStorage.getItem('spreadsheetConfig') || '{}');
             if (!config.webAppUrl) {
-                showToast('https://script.google.com/macros/s/AKfycbwC3AjJcYmzAswX3Vlhed8bYydlx7DCAyfWZ1Vzyan97-bRTb7QXB27kF2vRjE-Skw/exec');
+                showToast('Masukkan Web App URL terlebih dahulu!');
                 return;
             }
+            
             showToast('Menguji koneksi...');
+            
+            try {
+                const response = await fetch(config.webAppUrl + '?action=ping', {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: { 'Accept': 'application/json' }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success && result.data === 'pong') {
+                    showToast('✅ Koneksi berhasil! Memulai sinkronisasi...');
+                    
+                    // Trigger initial sync
+                    setTimeout(() => {
+                        initialSyncToCloud();
+                    }, 1000);
+                } else {
+                    showToast('❌ Koneksi gagal: ' + (result.error || 'Unknown error'));
+                }
+            } catch (err) {
+                console.error('Connection test error:', err);
+                showToast('❌ Koneksi gagal: ' + err.message);
+            }
+        }
+        
+        async function initialSyncToCloud() {
+            const config = JSON.parse(localStorage.getItem('spreadsheetConfig') || '{}');
+            if (!config.webAppUrl) return;
+            
+            showToast('🔄 Mengunggah data ke cloud...');
+            
+            const sheets = [
+                { name: 'users', key: 'users' },
+                { name: 'outlets', key: 'outlets' },
+                { name: 'jadwal', key: 'jadwal' },
+                { name: 'tugas', key: 'tugas' },
+                { name: 'preparation', key: 'preparation' },
+                { name: 'checklistItems', key: 'checklistItems' },
+                { name: 'reject', key: 'reject' },
+                { name: 'inventori', key: 'inventori' },
+                { name: 'outStockLogs', key: 'outStockLogs' },
+                { name: 'logbook', key: 'logbook' },
+                { name: 'feedback', key: 'feedback' },
+                { name: 'activities', key: 'activities' }
+            ];
+            
+            let successCount = 0;
+            let errorCount = 0;
+            
+            for (const sheet of sheets) {
+                try {
+                    const localData = JSON.parse(localStorage.getItem(sheet.key) || '[]');
+                    
+                    // Pastikan setiap item punya id
+                    const dataWithIds = localData.map((item, idx) => {
+                        if (!item.id) {
+                            item.id = `${sheet.key}-${Date.now()}-${idx}`;
+                        }
+                        return item;
+                    });
+                    
+                    const response = await fetch(config.webAppUrl, {
+                        method: 'POST',
+                        mode: 'cors',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            action: 'sync',
+                            sheet: sheet.name,
+                            data: dataWithIds
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        successCount++;
+                        console.log(`✅ Synced ${sheet.name}: ${dataWithIds.length} items`);
+                    } else {
+                        errorCount++;
+                        console.error(`❌ Failed to sync ${sheet.name}:`, result.error);
+                    }
+                } catch (err) {
+                    errorCount++;
+                    console.error(`❌ Error syncing ${sheet.name}:`, err);
+                }
+            }
+            
+            if (errorCount === 0) {
+                showToast(`✅ Sinkronisasi selesai! ${successCount} sheet berhasil diupload`);
+                
+                // Update sync status
+                if (typeof syncManager !== 'undefined') {
+                    syncManager.isOnline = true;
+                    syncManager.updateStatusUI();
+                }
+            } else {
+                showToast(`⚠️ Sinkronisasi: ${successCount} berhasil, ${errorCount} gagal`);
+            }
+        }
+        
+        async function pullDataFromCloud() {
+            const config = JSON.parse(localStorage.getItem('spreadsheetConfig') || '{}');
+            if (!config.webAppUrl) {
+                showToast('Konfigurasi Web App URL belum diisi!');
+                return;
+            }
+            
+            showToast('🔄 Mengunduh data dari cloud...');
+            
+            const sheets = [
+                { name: 'users', key: 'users' },
+                { name: 'outlets', key: 'outlets' },
+                { name: 'jadwal', key: 'jadwal' },
+                { name: 'tugas', key: 'tugas' },
+                { name: 'preparation', key: 'preparation' },
+                { name: 'checklistItems', key: 'checklistItems' },
+                { name: 'reject', key: 'reject' },
+                { name: 'inventori', key: 'inventori' },
+                { name: 'outStockLogs', key: 'outStockLogs' },
+                { name: 'logbook', key: 'logbook' },
+                { name: 'feedback', key: 'feedback' },
+                { name: 'activities', key: 'activities' }
+            ];
+            
+            let successCount = 0;
+            
+            for (const sheet of sheets) {
+                try {
+                    const response = await fetch(`${config.webAppUrl}?action=read&sheet=${sheet.name}`, {
+                        method: 'GET',
+                        mode: 'cors',
+                        headers: { 'Accept': 'application/json' }
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success && result.data) {
+                        localStorage.setItem(sheet.key, JSON.stringify(result.data));
+                        successCount++;
+                        console.log(`✅ Pulled ${sheet.name}: ${result.data.length} items`);
+                    }
+                } catch (err) {
+                    console.error(`❌ Error pulling ${sheet.name}:`, err);
+                }
+            }
+            
+            showToast(`✅ Data dari cloud berhasil diunduh! (${successCount} sheet)`);
+            
+            // Reload current module
+            const activeModule = document.querySelector('.module-section.active');
+            if (activeModule) {
+                const moduleId = activeModule.id.replace('module-', '');
+                loadModuleData(moduleId);
+            }
         }
 
         // ==================== EXPORT CHECKLIST PDF ====================
@@ -4552,4 +4789,3 @@
     </script>
 </body>
 </html>
-
