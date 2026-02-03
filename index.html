@@ -2999,6 +2999,7 @@
                 status: 'terjadwal'
             });
             localStorage.setItem('jadwal', JSON.stringify(jadwal));
+            scheduleCloudSync();
             closeModal('modalJadwal');
             updateSchedulePeriodLabel();
             loadJadwal();
@@ -3187,6 +3188,7 @@
                 selesai: false
             });
             localStorage.setItem('tugas', JSON.stringify(tugas));
+            scheduleCloudSync();
             closeModal('modalTugas');
             loadTugas();
             addActivity('tugas', 'Tugas baru: ' + judulVal + (assignVal ? ' → ' + assignVal : ''));
@@ -3254,6 +3256,7 @@
                 tanggal: toYMD(new Date())
             });
             localStorage.setItem('preparation', JSON.stringify(prep));
+            scheduleCloudSync();
             closeModal('modalPreparation');
             loadPreparation();
             showToast('Preparation berhasil ditambahkan!');
@@ -3466,6 +3469,7 @@
                 pic: currentUser.nama
             });
             localStorage.setItem('reject', JSON.stringify(reject));
+            scheduleCloudSync();
             closeModal('modalReject');
             loadReject();
             loadDashboard();
@@ -3888,6 +3892,7 @@
                 tglExpired: document.getElementById('invTglExpired').value
             });
             localStorage.setItem('inventori', JSON.stringify(inv));
+            scheduleCloudSync();
             closeModal('modalInventori');
             loadInventori();
             loadDashboard();
@@ -3925,6 +3930,7 @@
                 ket: 'FEFO'
             });
             localStorage.setItem('outStockLogs', JSON.stringify(outLogs));
+            scheduleCloudSync();
 
             closeModal('modalOutStock');
             loadInventori();
@@ -4503,62 +4509,55 @@
                 apiKey: document.getElementById('apiKey').value,
                 webAppUrl: document.getElementById('webAppUrl').value.trim()
             };
-            
             if (!config.webAppUrl) {
                 showToast('Web App URL wajib diisi!');
                 return;
             }
-            
             localStorage.setItem('spreadsheetConfig', JSON.stringify(config));
-            
-            // Update syncManager config
-            if (typeof syncManager !== 'undefined') {
-                syncManager.apiUrl = config.webAppUrl;
-            }
-            
             showToast('Konfigurasi berhasil disimpan!');
         }
 
-        async function testConnection() {
-            const config = JSON.parse(localStorage.getItem('spreadsheetConfig') || '{}');
-            if (!config.webAppUrl) {
-                showToast('Masukkan Web App URL terlebih dahulu!');
-                return;
-            }
-            
-            showToast('Menguji koneksi...');
-            
+        // Helper API (GET-only to avoid CORS)
+        function getApiUrl() {
+            const cfg = JSON.parse(localStorage.getItem('spreadsheetConfig') || '{}');
+            return (cfg.webAppUrl || '').replace(/\/$/, '');
+        }
+        function enc(obj) { return encodeURIComponent(JSON.stringify(obj || {})); }
+        async function getJSON(url) {
             try {
-                const response = await fetch(config.webAppUrl + '?action=ping', {
-                    method: 'GET',
-                    mode: 'cors',
-                    headers: { 'Accept': 'application/json' }
-                });
-                
-                const result = await response.json();
-                
-                if (result.success && result.data === 'pong') {
-                    showToast('✅ Koneksi berhasil! Memulai sinkronisasi...');
-                    
-                    // Trigger initial sync
-                    setTimeout(() => {
-                        initialSyncToCloud();
-                    }, 1000);
-                } else {
-                    showToast('❌ Koneksi gagal: ' + (result.error || 'Unknown error'));
-                }
-            } catch (err) {
-                console.error('Connection test error:', err);
-                showToast('❌ Koneksi gagal: ' + err.message);
+                const res = await fetch(url, { method: 'GET' });
+                return await res.json();
+            } catch (e) {
+                return { success: false, error: e.message };
+            }
+        }
+
+        // Debounced auto-sync trigger
+        let __syncTimer = null;
+        function scheduleCloudSync(delay = 2000) {
+            clearTimeout(__syncTimer);
+            __syncTimer = setTimeout(() => initialSyncToCloud(), delay);
+        }
+        window.addEventListener('online', () => scheduleCloudSync(500));
+
+        async function testConnection() {
+            const baseUrl = getApiUrl();
+            if (!baseUrl) { showToast('Masukkan Web App URL terlebih dahulu!'); return; }
+            showToast('Menguji koneksi...');
+            const result = await getJSON(`${baseUrl}?action=ping`);
+            if (result.success && result.data === 'pong') {
+                showToast('✅ Koneksi berhasil! Memulai sinkronisasi...');
+                setTimeout(() => initialSyncToCloud(), 600);
+            } else {
+                showToast('❌ Koneksi gagal: ' + (result.error || 'Unknown error'));
             }
         }
         
         async function initialSyncToCloud() {
-            const config = JSON.parse(localStorage.getItem('spreadsheetConfig') || '{}');
-            if (!config.webAppUrl) return;
-            
+            const baseUrl = getApiUrl();
+            if (!baseUrl) return;
             showToast('🔄 Mengunggah data ke cloud...');
-            
+
             const sheets = [
                 { name: 'users', key: 'users' },
                 { name: 'outlets', key: 'outlets' },
@@ -4566,6 +4565,8 @@
                 { name: 'tugas', key: 'tugas' },
                 { name: 'preparation', key: 'preparation' },
                 { name: 'checklistItems', key: 'checklistItems' },
+                { name: 'checklistStatus', key: 'checklistStatus' },
+                { name: 'checklistCorrective', key: 'checklistCorrective' },
                 { name: 'reject', key: 'reject' },
                 { name: 'inventori', key: 'inventori' },
                 { name: 'outStockLogs', key: 'outStockLogs' },
@@ -4573,95 +4574,57 @@
                 { name: 'feedback', key: 'feedback' },
                 { name: 'activities', key: 'activities' }
             ];
-            
+
             let successCount = 0;
             let errorCount = 0;
-            
-            // Helper GET requester (anti-CORS)
-            async function getJSON(url) {
-                const res = await fetch(url, { method: 'GET' });
-                try {
-                    return await res.json();
-                } catch (e) {
-                    return { success: false, error: 'Invalid JSON response' };
-                }
-            }
-            
+
             for (const sheet of sheets) {
                 try {
                     const localData = JSON.parse(localStorage.getItem(sheet.key) || '[]');
-                    
-                    // Pastikan setiap item punya id (required untuk create fallback)
                     const dataWithIds = localData.map((item, idx) => {
-                        if (!item.id) item.id = `${sheet.key}-${Date.now()}-${idx}`;
+                        if (item && typeof item === 'object' && !item.id) item.id = `${sheet.key}-${Date.now()}-${idx}`;
                         return item;
                     });
-                    
-                    // Build URL untuk sync via GET (data di-encode ke query)
-                    const baseUrl = config.webAppUrl.replace(/\/$/, '');
                     const dataStr = JSON.stringify(dataWithIds);
                     const encoded = encodeURIComponent(dataStr);
-                    
-                    // Jika payload terlalu besar untuk URL, gunakan strategi clear + create bertahap
+
+                    // Fallback strategy for long URLs
                     if (encoded.length > 1400) {
-                        // 1) Clear sheet dengan sync []
-                        const clearUrl = `${baseUrl}?action=sync&sheet=${encodeURIComponent(sheet.name)}&data=%5B%5D`;
-                        const clearRes = await getJSON(clearUrl);
-                        if (!clearRes.success) {
-                            errorCount++;
-                            console.error(`❌ Failed to clear ${sheet.name}:`, clearRes.error);
-                            continue;
-                        }
-                        // 2) Create per item
+                        // Clear first
+                        const clearRes = await getJSON(`${baseUrl}?action=sync&sheet=${encodeURIComponent(sheet.name)}&data=%5B%5D`);
+                        if (!clearRes.success) { errorCount++; console.error('Clear failed', sheet.name, clearRes.error); continue; }
+                        // Create one by one
                         for (let i = 0; i < dataWithIds.length; i++) {
                             const item = dataWithIds[i];
-                            const createUrl = `${baseUrl}?action=create&sheet=${encodeURIComponent(sheet.name)}&data=${encodeURIComponent(JSON.stringify(item))}`;
-                            const cr = await getJSON(createUrl);
-                            if (!cr.success) {
-                                errorCount++;
-                                console.error(`❌ Failed to create item ${i+1}/${dataWithIds.length} on ${sheet.name}:`, cr.error);
-                            }
+                            const cr = await getJSON(`${baseUrl}?action=create&sheet=${encodeURIComponent(sheet.name)}&data=${encodeURIComponent(JSON.stringify(item))}`);
+                            if (!cr.success) { errorCount++; console.error(`Create failed on ${sheet.name} idx ${i+1}`, cr.error); }
                         }
                         successCount++;
-                        console.log(`✅ Synced ${sheet.name} with ${dataWithIds.length} items (fallback create)`);
+                        console.log(`✅ Synced ${sheet.name} (fallback create): ${dataWithIds.length}`);
                     } else {
-                        // Payload aman untuk single sync
-                        const syncUrl = `${baseUrl}?action=sync&sheet=${encodeURIComponent(sheet.name)}&data=${encoded}`;
-                        const result = await getJSON(syncUrl);
-                        if (result.success) {
-                            successCount++;
-                            console.log(`✅ Synced ${sheet.name}: ${(dataWithIds || []).length} items`);
-                        } else {
-                            errorCount++;
-                            console.error(`❌ Failed to sync ${sheet.name}:`, result.error);
-                        }
+                        // Single sync
+                        const res = await getJSON(`${baseUrl}?action=sync&sheet=${encodeURIComponent(sheet.name)}&data=${encoded}`);
+                        if (res.success) { successCount++; console.log(`✅ Synced ${sheet.name}: ${dataWithIds.length}`); }
+                        else { errorCount++; console.error(`❌ Failed to sync ${sheet.name}:`, res.error); }
                     }
                 } catch (err) {
                     errorCount++;
                     console.error(`❌ Error syncing ${sheet.name}:`, err);
                 }
             }
-            
+
             if (errorCount === 0) {
                 showToast(`✅ Sinkronisasi selesai! ${successCount} sheet berhasil diupload`);
-                if (typeof syncManager !== 'undefined') {
-                    syncManager.isOnline = true;
-                    syncManager.updateStatusUI();
-                }
             } else {
                 showToast(`⚠️ Sinkronisasi: ${successCount} berhasil, ${errorCount} gagal`);
             }
         }
         
         async function pullDataFromCloud() {
-            const config = JSON.parse(localStorage.getItem('spreadsheetConfig') || '{}');
-            if (!config.webAppUrl) {
-                showToast('Konfigurasi Web App URL belum diisi!');
-                return;
-            }
-            
+            const baseUrl = getApiUrl();
+            if (!baseUrl) { showToast('Konfigurasi Web App URL belum diisi!'); return; }
+
             showToast('🔄 Mengunduh data dari cloud...');
-            
             const sheets = [
                 { name: 'users', key: 'users' },
                 { name: 'outlets', key: 'outlets' },
@@ -4669,6 +4632,8 @@
                 { name: 'tugas', key: 'tugas' },
                 { name: 'preparation', key: 'preparation' },
                 { name: 'checklistItems', key: 'checklistItems' },
+                { name: 'checklistStatus', key: 'checklistStatus' },
+                { name: 'checklistCorrective', key: 'checklistCorrective' },
                 { name: 'reject', key: 'reject' },
                 { name: 'inventori', key: 'inventori' },
                 { name: 'outStockLogs', key: 'outStockLogs' },
@@ -4676,32 +4641,22 @@
                 { name: 'feedback', key: 'feedback' },
                 { name: 'activities', key: 'activities' }
             ];
-            
+
             let successCount = 0;
-            
             for (const sheet of sheets) {
                 try {
-                    const response = await fetch(`${config.webAppUrl}?action=read&sheet=${sheet.name}`, {
-                        method: 'GET',
-                        mode: 'cors',
-                        headers: { 'Accept': 'application/json' }
-                    });
-                    
-                    const result = await response.json();
-                    
-                    if (result.success && result.data) {
-                        localStorage.setItem(sheet.key, JSON.stringify(result.data));
+                    const res = await getJSON(`${baseUrl}?action=read&sheet=${encodeURIComponent(sheet.name)}`);
+                    if (res.success && res.data) {
+                        localStorage.setItem(sheet.key, JSON.stringify(res.data));
                         successCount++;
-                        console.log(`✅ Pulled ${sheet.name}: ${result.data.length} items`);
+                        console.log(`✅ Pulled ${sheet.name}: ${res.data.length} items`);
                     }
                 } catch (err) {
                     console.error(`❌ Error pulling ${sheet.name}:`, err);
                 }
             }
-            
+
             showToast(`✅ Data dari cloud berhasil diunduh! (${successCount} sheet)`);
-            
-            // Reload current module
             const activeModule = document.querySelector('.module-section.active');
             if (activeModule) {
                 const moduleId = activeModule.id.replace('module-', '');
