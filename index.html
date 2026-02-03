@@ -4746,12 +4746,8 @@
             let successCount = 0;
             for (const sheet of sheets) {
                 try {
-                    // Try JSON first
-                    let res = await getJSON(`${baseUrl}?action=read&sheet=${encodeURIComponent(sheet.name)}`);
-                    if (!res || !res.success) {
-                        // Fallback to JSONP
-                        res = await jsonp(`${baseUrl}?action=readp&sheet=${encodeURIComponent(sheet.name)}`);
-                    }
+                    // JSONP-only to avoid CORS entirely
+                    const res = await jsonp(`${baseUrl}?action=readp&sheet=${encodeURIComponent(sheet.name)}`);
                     if (res && res.success && Array.isArray(res.data)) {
                         localStorage.setItem(sheet.key, JSON.stringify(res.data));
                         successCount++;
@@ -4759,6 +4755,8 @@
                     } else {
                         console.warn(`⚠️ Pull ${sheet.name} failed or empty:`, res && res.error);
                     }
+                    // Throttle a bit to avoid flooding GAS
+                    await new Promise(r => setTimeout(r, 150));
                 } catch (err) {
                     console.error(`❌ Error pulling ${sheet.name}:`, err);
                 }
@@ -4768,7 +4766,7 @@
             try { localStorage.setItem('lastCloudPullAt', String(Date.now())); } catch (e) {}
             hideCloudAlert();
 
-            // Recompute session with freshly pulled users/outlets so outlet IDs match cloud
+            // Refresh session & selector (ids from cloud might differ)
             try {
                 if (currentUser) {
                     setupUserSession();
