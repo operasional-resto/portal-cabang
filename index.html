@@ -1478,6 +1478,15 @@
     <div id="toast" class="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg hidden z-50 fade-in">
         <i class="fas fa-check-circle mr-2"></i><span id="toastMessage">Berhasil disimpan!</span>
     </div>
+    
+    <!-- Cloud Config Alert -->
+    <div id="cloudAlert" class="fixed bottom-4 left-4 bg-yellow-500 text-white px-4 py-3 rounded-lg shadow-lg hidden z-50 fade-in">
+        <div class="flex items-center gap-3">
+            <i class="fas fa-plug"></i>
+            <span class="text-sm">Belum terhubung ke Cloud. Masukkan Web App URL pada Koneksi Spreadsheet.</span>
+            <button onclick="showModule('spreadsheet')" class="bg-white/20 hover:bg-white/30 text-white text-xs px-3 py-1 rounded">Buka Pengaturan</button>
+        </div>
+    </div>
 
     <script>
         // ==================== USER DATABASE ====================
@@ -1534,6 +1543,17 @@
         };
 
         // ==================== INITIALIZATION ====================
+        const DEFAULT_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxfLIGpTa6PKMZPhWBzydUDK0dIcsq7Eo0V0ciA-r-x_2QP5t3yKbO1vTIIbBTVZxk/exec';
+        const DEFAULT_SPREADSHEET_ID = '1h7VCFxncf--Ksv-I79sk9N1gUCNn7p_Kz6NByyiyrpk';
+        function ensureCloudConfigDefaults() {
+            try {
+                const cfg = JSON.parse(localStorage.getItem('spreadsheetConfig') || '{}');
+                let changed = false;
+                if (!cfg.webAppUrl) { cfg.webAppUrl = DEFAULT_WEB_APP_URL; changed = true; }
+                if (!cfg.spreadsheetId) { cfg.spreadsheetId = DEFAULT_SPREADSHEET_ID; changed = true; }
+                if (changed) localStorage.setItem('spreadsheetConfig', JSON.stringify(cfg));
+            } catch (e) {/* ignore */}
+        }
         function cleanupDefaultOutlets() {
             try {
                 let outlets = JSON.parse(localStorage.getItem('outlets') || '[]');
@@ -1711,6 +1731,7 @@
         }
         function init() {
             // Pastikan data dasar terbuat lalu lakukan merge & cleanup sebelum menampilkan app
+            ensureCloudConfigDefaults();
             initDefaultData();
             mergeUserDatabase();
             cleanupDefaultOutlets();
@@ -2272,7 +2293,12 @@
             updateDashboardDate();
 
             // Auto pull data dari cloud agar lintas-perangkat selalu ter-update
-            autoCloudStart();
+            if (isCloudConfigured()) {
+                hideCloudAlert();
+                autoCloudStart();
+            } else {
+                showCloudAlert();
+            }
         }
 
         function populateOutletSelector() {
@@ -2516,6 +2542,14 @@
             
             if (window.innerWidth < 1024) toggleSidebar();
             
+            // Pull ringan saat pindah modul jika sudah lebih 30 detik
+            try {
+                const last = Number(localStorage.getItem('lastCloudPullAt') || '0');
+                if (isCloudConfigured() && Date.now() - last > 30000) {
+                    pullDataFromCloud();
+                }
+            } catch (e) {}
+
             loadModuleData(module);
         }
 
@@ -4558,6 +4592,17 @@
                 return { success: false, error: e.message };
             }
         }
+        function isCloudConfigured() {
+            try { const url = getApiUrl(); return !!url; } catch(e){ return false; }
+        }
+        function showCloudAlert() {
+            const el = document.getElementById('cloudAlert');
+            if (el) el.classList.remove('hidden');
+        }
+        function hideCloudAlert() {
+            const el = document.getElementById('cloudAlert');
+            if (el) el.classList.add('hidden');
+        }
 
         // Debounced auto-sync trigger + Single-row cloud create (anti-CORS)
         let __syncTimer = null;
@@ -4662,7 +4707,7 @@
         
         async function pullDataFromCloud() {
             const baseUrl = getApiUrl();
-            if (!baseUrl) { showToast('Konfigurasi Web App URL belum diisi!'); return; }
+            if (!baseUrl) { showToast('Konfigurasi Web App URL belum diisi!'); showCloudAlert(); return; }
 
             showToast('🔄 Mengunduh data dari cloud...');
             const sheets = [
@@ -4696,6 +4741,10 @@
                 }
             }
 
+            // Simpan timestamp pull terakhir
+            try { localStorage.setItem('lastCloudPullAt', String(Date.now())); } catch (e) {}
+            hideCloudAlert();
+
             showToast(`✅ Data dari cloud berhasil diunduh! (${successCount} sheet)`);
             const activeModule = document.querySelector('.module-section.active');
             if (activeModule) {
@@ -4716,8 +4765,12 @@
             // Saat tab menjadi aktif
             document.addEventListener('visibilitychange', () => {
                 if (document.visibilityState === 'visible') {
-                    console.log('👀 Tab aktif - refresh data dari cloud');
-                    pullDataFromCloud();
+                    const last = Number(localStorage.getItem('lastCloudPullAt') || '0');
+                    // Pull ringan jika sudah > 30 detik sejak pull terakhir
+                    if (Date.now() - last > 30000) {
+                        console.log('👀 Tab aktif - refresh data dari cloud');
+                        pullDataFromCloud();
+                    }
                 }
             });
             // Tarik berkala tiap 3 menit
