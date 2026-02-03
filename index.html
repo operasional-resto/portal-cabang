@@ -2991,14 +2991,17 @@
                 return;
             }
             const jadwal = JSON.parse(localStorage.getItem('jadwal') || '[]');
-            jadwal.push({
+            const newItem = {
                 outlet: currentOutlet,
                 nama: document.getElementById('jadwalNama').value,
                 tanggal: document.getElementById('jadwalTanggal').value,
                 shift: document.getElementById('jadwalShift').value,
                 status: 'terjadwal'
-            });
+            };
+            jadwal.push(newItem);
             localStorage.setItem('jadwal', JSON.stringify(jadwal));
+            // Push single row immediately to cloud to avoid waiting bulk sync
+            createSingleToCloud('jadwal', newItem);
             scheduleCloudSync();
             closeModal('modalJadwal');
             updateSchedulePeriodLabel();
@@ -3178,7 +3181,7 @@
             const tugas = JSON.parse(localStorage.getItem('tugas') || '[]');
             const judulVal = document.getElementById('tugasJudul').value;
             const assignVal = document.getElementById('tugasAssign').value;
-            tugas.push({
+            const newItem = {
                 outlet: currentOutlet,
                 judul: judulVal,
                 deskripsi: document.getElementById('tugasDeskripsi').value,
@@ -3186,8 +3189,11 @@
                 assign: assignVal,
                 tanggal: toYMD(new Date()),
                 selesai: false
-            });
+            };
+            tugas.push(newItem);
             localStorage.setItem('tugas', JSON.stringify(tugas));
+            // Push single row to cloud immediately (anti-CORS GET)
+            createSingleToCloud('tugas', newItem);
             scheduleCloudSync();
             closeModal('modalTugas');
             loadTugas();
@@ -3247,15 +3253,18 @@
                 return;
             }
             const prep = JSON.parse(localStorage.getItem('preparation') || '[]');
-            prep.push({
+            const newItem = {
                 outlet: currentOutlet,
                 nama: document.getElementById('prepNama').value,
                 jumlah: document.getElementById('prepJumlah').value,
                 petugas: document.getElementById('prepPetugas').value,
                 selesai: false,
                 tanggal: toYMD(new Date())
-            });
+            };
+            prep.push(newItem);
             localStorage.setItem('preparation', JSON.stringify(prep));
+            // Push single row to cloud immediately
+            createSingleToCloud('preparation', newItem);
             scheduleCloudSync();
             closeModal('modalPreparation');
             loadPreparation();
@@ -3459,7 +3468,7 @@
                 return;
             }
             const reject = JSON.parse(localStorage.getItem('reject') || '[]');
-            reject.push({
+            const newItem = {
                 outlet: currentOutlet,
                 tanggal: toYMD(new Date()),
                 nama: document.getElementById('rejectNama').value,
@@ -3467,8 +3476,11 @@
                 kategori: document.getElementById('rejectKategori').value,
                 alasan: document.getElementById('rejectAlasan').value,
                 pic: currentUser.nama
-            });
+            };
+            reject.push(newItem);
             localStorage.setItem('reject', JSON.stringify(reject));
+            // Push single row immediately
+            createSingleToCloud('reject', newItem);
             scheduleCloudSync();
             closeModal('modalReject');
             loadReject();
@@ -3881,7 +3893,7 @@
         function saveInventori() {
             const inv = JSON.parse(localStorage.getItem('inventori') || '[]');
             const nama = document.getElementById('invNama').value;
-            inv.push({
+            const newItem = {
                 outlet: currentOutlet,
                 nama: nama,
                 satuan: satuanOf(nama),
@@ -3890,8 +3902,11 @@
                 tglProduksi: document.getElementById('invTglProduksi').value || '',
                 tglMasuk: document.getElementById('invTglMasuk').value,
                 tglExpired: document.getElementById('invTglExpired').value
-            });
+            };
+            inv.push(newItem);
             localStorage.setItem('inventori', JSON.stringify(inv));
+            // Push single row immediately
+            createSingleToCloud('inventori', newItem);
             scheduleCloudSync();
             closeModal('modalInventori');
             loadInventori();
@@ -3920,7 +3935,7 @@
 
             // Catat riwayat Out Stock
             const outLogs = JSON.parse(localStorage.getItem('outStockLogs') || '[]');
-            outLogs.push({
+            const newLog = {
                 outlet: currentOutlet,
                 tanggal: toYMD(new Date()),
                 nama: nama,
@@ -3928,8 +3943,11 @@
                 satuan: satuanOf(nama),
                 pic: currentUser?.nama || '-',
                 ket: 'FEFO'
-            });
+            };
+            outLogs.push(newLog);
             localStorage.setItem('outStockLogs', JSON.stringify(outLogs));
+            // Push single outStock log immediately
+            createSingleToCloud('outStockLogs', newLog);
             scheduleCloudSync();
 
             closeModal('modalOutStock');
@@ -4016,7 +4034,7 @@
 
         function saveLogbook() {
             const logs = JSON.parse(localStorage.getItem('logbook') || '[]');
-            logs.push({
+            const newItem = {
                 outlet: currentOutlet,
                 tanggal: new Date().toISOString().split('T')[0],
                 waktu: new Date().toTimeString().slice(0,5),
@@ -4024,8 +4042,11 @@
                 kategori: document.getElementById('logKategori').value,
                 catatan: document.getElementById('logCatatan').value,
                 penulis: currentUser.nama
-            });
+            };
+            logs.push(newItem);
             localStorage.setItem('logbook', JSON.stringify(logs));
+            // Push single row immediately
+            createSingleToCloud('logbook', newItem);
             closeModal('modalLogbook');
             loadLogbook();
             showToast('Log berhasil disimpan!');
@@ -4278,7 +4299,7 @@
             }
             
             const fb = JSON.parse(localStorage.getItem('feedback') || '[]');
-            fb.push({
+            const newItem = {
                 outlet: currentOutlet,
                 tanggal: toYMD(new Date()),
                 nama: nama,
@@ -4288,8 +4309,11 @@
                 kepuasan: kepuasan,
                 komentar: komentar,
                 capa: isNegative ? capa : ''
-            });
+            };
+            fb.push(newItem);
             localStorage.setItem('feedback', JSON.stringify(fb));
+            // Push single row immediately
+            createSingleToCloud('feedback', newItem);
             closeModal('modalFeedback');
             resetFeedbackForm();
             loadFeedback();
@@ -4532,8 +4556,21 @@
             }
         }
 
-        // Debounced auto-sync trigger
+        // Debounced auto-sync trigger + Single-row cloud create (anti-CORS)
         let __syncTimer = null;
+        async function createSingleToCloud(sheetName, item) {
+            const baseUrl = getApiUrl();
+            if (!baseUrl || !item) return;
+            try {
+                const obj = { ...item };
+                if (!obj.id) obj.id = `${sheetName}-${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+                // GET anti-CORS create
+                await getJSON(`${baseUrl}?action=create&sheet=${encodeURIComponent(sheetName)}&data=${encodeURIComponent(JSON.stringify(obj))}`);
+                console.log(`✅ Created 1 row to cloud [${sheetName}]`);
+            } catch (e) {
+                console.warn('⚠️ Create cloud failed', sheetName, e);
+            }
+        }
         function scheduleCloudSync(delay = 2000) {
             clearTimeout(__syncTimer);
             __syncTimer = setTimeout(() => initialSyncToCloud(), delay);
