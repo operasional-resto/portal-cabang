@@ -4577,40 +4577,64 @@
             let successCount = 0;
             let errorCount = 0;
             
+            // Helper GET requester (anti-CORS)
+            async function getJSON(url) {
+                const res = await fetch(url, { method: 'GET' });
+                try {
+                    return await res.json();
+                } catch (e) {
+                    return { success: false, error: 'Invalid JSON response' };
+                }
+            }
+            
             for (const sheet of sheets) {
                 try {
                     const localData = JSON.parse(localStorage.getItem(sheet.key) || '[]');
                     
-                    // Pastikan setiap item punya id
+                    // Pastikan setiap item punya id (required untuk create fallback)
                     const dataWithIds = localData.map((item, idx) => {
-                        if (!item.id) {
-                            item.id = `${sheet.key}-${Date.now()}-${idx}`;
-                        }
+                        if (!item.id) item.id = `${sheet.key}-${Date.now()}-${idx}`;
                         return item;
                     });
                     
-                    const response = await fetch(config.webAppUrl, {
-                        method: 'POST',
-                        mode: 'cors',
-                        headers: { 
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            action: 'sync',
-                            sheet: sheet.name,
-                            data: dataWithIds
-                        })
-                    });
+                    // Build URL untuk sync via GET (data di-encode ke query)
+                    const baseUrl = config.webAppUrl.replace(/\/$/, '');
+                    const dataStr = JSON.stringify(dataWithIds);
+                    const encoded = encodeURIComponent(dataStr);
                     
-                    const result = await response.json();
-                    
-                    if (result.success) {
+                    // Jika payload terlalu besar untuk URL, gunakan strategi clear + create bertahap
+                    if (encoded.length > 1400) {
+                        // 1) Clear sheet dengan sync []
+                        const clearUrl = `${baseUrl}?action=sync&sheet=${encodeURIComponent(sheet.name)}&data=%5B%5D`;
+                        const clearRes = await getJSON(clearUrl);
+                        if (!clearRes.success) {
+                            errorCount++;
+                            console.error(`❌ Failed to clear ${sheet.name}:`, clearRes.error);
+                            continue;
+                        }
+                        // 2) Create per item
+                        for (let i = 0; i < dataWithIds.length; i++) {
+                            const item = dataWithIds[i];
+                            const createUrl = `${baseUrl}?action=create&sheet=${encodeURIComponent(sheet.name)}&data=${encodeURIComponent(JSON.stringify(item))}`;
+                            const cr = await getJSON(createUrl);
+                            if (!cr.success) {
+                                errorCount++;
+                                console.error(`❌ Failed to create item ${i+1}/${dataWithIds.length} on ${sheet.name}:`, cr.error);
+                            }
+                        }
                         successCount++;
-                        console.log(`✅ Synced ${sheet.name}: ${dataWithIds.length} items`);
+                        console.log(`✅ Synced ${sheet.name} with ${dataWithIds.length} items (fallback create)`);
                     } else {
-                        errorCount++;
-                        console.error(`❌ Failed to sync ${sheet.name}:`, result.error);
+                        // Payload aman untuk single sync
+                        const syncUrl = `${baseUrl}?action=sync&sheet=${encodeURIComponent(sheet.name)}&data=${encoded}`;
+                        const result = await getJSON(syncUrl);
+                        if (result.success) {
+                            successCount++;
+                            console.log(`✅ Synced ${sheet.name}: ${(dataWithIds || []).length} items`);
+                        } else {
+                            errorCount++;
+                            console.error(`❌ Failed to sync ${sheet.name}:`, result.error);
+                        }
                     }
                 } catch (err) {
                     errorCount++;
@@ -4620,8 +4644,6 @@
             
             if (errorCount === 0) {
                 showToast(`✅ Sinkronisasi selesai! ${successCount} sheet berhasil diupload`);
-                
-                // Update sync status
                 if (typeof syncManager !== 'undefined') {
                     syncManager.isOnline = true;
                     syncManager.updateStatusUI();
