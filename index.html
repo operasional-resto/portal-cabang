@@ -4745,6 +4745,14 @@
             try { localStorage.setItem('lastCloudPullAt', String(Date.now())); } catch (e) {}
             hideCloudAlert();
 
+            // Recompute session with freshly pulled users/outlets so outlet IDs match cloud
+            try {
+                if (currentUser) {
+                    setupUserSession();
+                    populateOutletSelector();
+                }
+            } catch (e) { console.warn('Session refresh after cloud pull failed:', e); }
+
             showToast(`✅ Data dari cloud berhasil diunduh! (${successCount} sheet)`);
             const activeModule = document.querySelector('.module-section.active');
             if (activeModule) {
@@ -4755,7 +4763,7 @@
 
         // Auto-pull lintas-perangkat: saat login, saat tab aktif, saat online, dan tiap 3 menit
         function autoCloudStart() {
-            // Tarik sekali saat start
+            // Tarik sekali saat start (sebelum render modul berat)
             pullDataFromCloud();
             // Saat kembali online
             window.addEventListener('online', () => {
@@ -4766,19 +4774,19 @@
             document.addEventListener('visibilitychange', () => {
                 if (document.visibilityState === 'visible') {
                     const last = Number(localStorage.getItem('lastCloudPullAt') || '0');
-                    // Pull ringan jika sudah > 30 detik sejak pull terakhir
-                    if (Date.now() - last > 30000) {
+                    // Pull ringan jika sudah > 15 detik sejak pull terakhir
+                    if (Date.now() - last > 15000) {
                         console.log('👀 Tab aktif - refresh data dari cloud');
                         pullDataFromCloud();
                     }
                 }
             });
-            // Tarik berkala tiap 3 menit
+            // Tarik berkala tiap 30 detik agar lintas perangkat lebih segar
             if (window.__autoCloudTimer) clearInterval(window.__autoCloudTimer);
             window.__autoCloudTimer = setInterval(() => {
-                console.log('⏱️ Auto refresh cloud data');
+                console.log('⏱️ Auto refresh cloud data (30s)');
                 pullDataFromCloud();
-            }, 180000);
+            }, 30000);
         }
 
         // ==================== EXPORT CHECKLIST PDF ====================
