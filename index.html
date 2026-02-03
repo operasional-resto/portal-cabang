@@ -2270,6 +2270,9 @@
             applyViewOnlyMode();
             loadDashboard();
             updateDashboardDate();
+
+            // Auto pull data dari cloud agar lintas-perangkat selalu ter-update
+            autoCloudStart();
         }
 
         function populateOutletSelector() {
@@ -4699,6 +4702,30 @@
                 const moduleId = activeModule.id.replace('module-', '');
                 loadModuleData(moduleId);
             }
+        }
+
+        // Auto-pull lintas-perangkat: saat login, saat tab aktif, saat online, dan tiap 3 menit
+        function autoCloudStart() {
+            // Tarik sekali saat start
+            pullDataFromCloud();
+            // Saat kembali online
+            window.addEventListener('online', () => {
+                console.log('🌐 Online kembali - menarik data dari cloud');
+                pullDataFromCloud();
+            });
+            // Saat tab menjadi aktif
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') {
+                    console.log('👀 Tab aktif - refresh data dari cloud');
+                    pullDataFromCloud();
+                }
+            });
+            // Tarik berkala tiap 3 menit
+            if (window.__autoCloudTimer) clearInterval(window.__autoCloudTimer);
+            window.__autoCloudTimer = setInterval(() => {
+                console.log('⏱️ Auto refresh cloud data');
+                pullDataFromCloud();
+            }, 180000);
         }
 
         // ==================== EXPORT CHECKLIST PDF ====================
