@@ -4746,17 +4746,42 @@
             let successCount = 0;
             for (const sheet of sheets) {
                 try {
-                    // JSONP-only to avoid CORS entirely
+                    let dataArr = null;
+
+                    // 1) Coba JSONP (readp)
                     const res = await jsonp(`${baseUrl}?action=readp&sheet=${encodeURIComponent(sheet.name)}`);
                     if (res && res.success && Array.isArray(res.data)) {
-                        localStorage.setItem(sheet.key, JSON.stringify(res.data));
-                        successCount++;
-                        console.log(`✅ Pulled ${sheet.name}: ${res.data.length} items`);
+                        dataArr = res.data;
                     } else {
-                        console.warn(`⚠️ Pull ${sheet.name} failed or empty:`, res && res.error);
+                        // 2) Fallback via CORS proxy (AllOrigins) menggunakan action=read
+                        try {
+                            const readUrl = `${baseUrl}?action=read&sheet=${encodeURIComponent(sheet.name)}`;
+                            const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(readUrl)}`;
+                            const resp = await fetch(proxyUrl);
+                            if (resp.ok) {
+                                const text = await resp.text();
+                                const json = JSON.parse(text);
+                                if (json && json.success && Array.isArray(json.data)) {
+                                    dataArr = json.data;
+                                } else {
+                                    console.warn(`⚠️ Pull ${sheet.name} via proxy failed or empty:`, json && json.error);
+                                }
+                            } else {
+                                console.warn(`⚠️ Proxy fetch failed for ${sheet.name}: HTTP ${resp.status}`);
+                            }
+                        } catch (px) {
+                            console.warn(`⚠️ Proxy error for ${sheet.name}:`, px);
+                        }
                     }
-                    // Throttle a bit to avoid flooding GAS
-                    await new Promise(r => setTimeout(r, 150));
+
+                    if (Array.isArray(dataArr)) {
+                        localStorage.setItem(sheet.key, JSON.stringify(dataArr));
+                        successCount++;
+                        console.log(`✅ Pulled ${sheet.name}: ${dataArr.length} items`);
+                    }
+
+                    // Throttle untuk menghindari rate limit
+                    await new Promise(r => setTimeout(r, 200));
                 } catch (err) {
                     console.error(`❌ Error pulling ${sheet.name}:`, err);
                 }
@@ -4766,7 +4791,7 @@
             try { localStorage.setItem('lastCloudPullAt', String(Date.now())); } catch (e) {}
             hideCloudAlert();
 
-            // Refresh session & selector (ids from cloud might differ)
+            // Refresh session & selector (ids from cloud mungkin berubah)
             try {
                 if (currentUser) {
                     setupUserSession();
