@@ -4748,23 +4748,26 @@
                 try {
                     let dataArr = null;
 
-                    // 1) Coba JSONP (readp)
+                    // 1) JSONP (readp) – cara utama anti-CORS
                     const res = await jsonp(`${baseUrl}?action=readp&sheet=${encodeURIComponent(sheet.name)}`);
                     if (res && res.success && Array.isArray(res.data)) {
                         dataArr = res.data;
                     } else {
-                        // 2) Fallback via CORS proxy (AllOrigins) menggunakan action=read
+                        // 2) Fallback proxy CORS yang lebih stabil (isomorphic-git)
                         try {
                             const readUrl = `${baseUrl}?action=read&sheet=${encodeURIComponent(sheet.name)}`;
-                            const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(readUrl)}`;
+                            const proxyUrl = `https://cors.isomorphic-git.org/${encodeURIComponent(readUrl)}`;
                             const resp = await fetch(proxyUrl);
                             if (resp.ok) {
                                 const text = await resp.text();
-                                const json = JSON.parse(text);
+                                let json = null;
+                                try { json = JSON.parse(text); } catch(parseErr) {
+                                    console.warn(`⚠️ Proxy parse JSON gagal untuk ${sheet.name}:`, parseErr);
+                                }
                                 if (json && json.success && Array.isArray(json.data)) {
                                     dataArr = json.data;
                                 } else {
-                                    console.warn(`⚠️ Pull ${sheet.name} via proxy failed or empty:`, json && json.error);
+                                    console.warn(`⚠️ Pull ${sheet.name} via proxy gagal/empty`, json && json.error);
                                 }
                             } else {
                                 console.warn(`⚠️ Proxy fetch failed for ${sheet.name}: HTTP ${resp.status}`);
@@ -4778,6 +4781,8 @@
                         localStorage.setItem(sheet.key, JSON.stringify(dataArr));
                         successCount++;
                         console.log(`✅ Pulled ${sheet.name}: ${dataArr.length} items`);
+                    } else {
+                        console.warn(`⚠️ Gagal menarik sheet ${sheet.name} (data kosong atau error)`);
                     }
 
                     // Throttle untuk menghindari rate limit
