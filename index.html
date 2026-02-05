@@ -1550,11 +1550,11 @@
         const DEFAULT_SPREADSHEET_ID = '1h7VCFxncf--Ksv-I79sk9N1gUCNn7p_Kz6NByyiyrpk';
         function ensureCloudConfigDefaults() {
             try {
+                // Paksa gunakan URL default terbaru agar tidak terjebak URL lama di localStorage
                 const cfg = JSON.parse(localStorage.getItem('spreadsheetConfig') || '{}');
-                let changed = false;
-                if (!cfg.webAppUrl) { cfg.webAppUrl = DEFAULT_WEB_APP_URL; changed = true; }
-                if (!cfg.spreadsheetId) { cfg.spreadsheetId = DEFAULT_SPREADSHEET_ID; changed = true; }
-                if (changed) localStorage.setItem('spreadsheetConfig', JSON.stringify(cfg));
+                cfg.webAppUrl = DEFAULT_WEB_APP_URL;
+                if (!cfg.spreadsheetId) cfg.spreadsheetId = DEFAULT_SPREADSHEET_ID;
+                localStorage.setItem('spreadsheetConfig', JSON.stringify(cfg));
             } catch (e) {/* ignore */}
         }
         function cleanupDefaultOutlets() {
@@ -2279,7 +2279,7 @@
             const accessLabel = document.getElementById('accessModeLabel');
             accessLabel.textContent = roleDescriptions[currentUser.role] || 'Mode Akses';
             
-            // Set access badge
+            // Set access badge (disembunyikan via CSS, tetap set untuk konsistensi state)
             const accessBadge = document.getElementById('accessBadge');
             if (isViewOnly) {
                 accessBadge.textContent = 'VIEW ONLY';
@@ -2292,15 +2292,21 @@
             populateOutletSelector();
             applyRolePermissions();
             applyViewOnlyMode();
-            loadDashboard();
             updateDashboardDate();
 
-            // Auto pull data dari cloud agar lintas-perangkat selalu ter-update
+            // Tarik dari cloud terlebih dahulu agar lintas-perangkat konsisten, baru render dashboard
             if (isCloudConfigured()) {
                 hideCloudAlert();
-                autoCloudStart();
+                pullDataFromCloud().then(() => {
+                    loadDashboard();
+                    autoCloudStart();
+                }).catch(() => {
+                    loadDashboard();
+                    autoCloudStart();
+                });
             } else {
                 showCloudAlert();
+                loadDashboard();
             }
         }
 
