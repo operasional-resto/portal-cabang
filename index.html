@@ -4815,9 +4815,30 @@
                     }
 
                     if (Array.isArray(dataArr)) {
-                        localStorage.setItem(sheet.key, JSON.stringify(dataArr));
-                        successCount++;
-                        console.log(`✅ Pulled ${sheet.name}: ${dataArr.length} items`);
+                        // Safe-save strategy: avoid wiping local when cloud returns empty/partial
+                        let prev = [];
+                        try { prev = JSON.parse(localStorage.getItem(sheet.key) || '[]'); } catch (e) { prev = []; }
+                        let saveArr = dataArr;
+
+                        // 1) If cloud returns empty but we have local data, keep local (skip overwrite)
+                        if ((dataArr.length === 0) && Array.isArray(prev) && prev.length > 0) {
+                            console.warn(`⏭️ Skip overwrite ${sheet.name}: remote empty, keep local ${prev.length}`);
+                        } else {
+                            // 2) If both sides have id and cloud has fewer items, merge by id to avoid data loss
+                            const hasIdNew = dataArr.length && typeof dataArr[0] === 'object' && dataArr[0] && ('id' in dataArr[0]);
+                            const hasIdPrev = prev.length && typeof prev[0] === 'object' && prev[0] && ('id' in prev[0]);
+                            if (hasIdNew && hasIdPrev && prev.length > dataArr.length) {
+                                const map = new Map();
+                                dataArr.forEach(it => { if (it && it.id != null) map.set(it.id, it); });
+                                prev.forEach(it => { if (it && it.id != null && !map.has(it.id)) map.set(it.id, it); });
+                                saveArr = Array.from(map.values());
+                                console.log(`🔀 Merged ${sheet.name}: cloud ${dataArr.length} + kept ${saveArr.length - dataArr.length} = ${saveArr.length}`);
+                            }
+
+                            localStorage.setItem(sheet.key, JSON.stringify(saveArr));
+                            successCount++;
+                            console.log(`✅ Pulled ${sheet.name}: ${saveArr.length} items`);
+                        }
                     } else {
                         console.warn(`⚠️ Gagal menarik sheet ${sheet.name} (data kosong atau error)`);
                     }
@@ -4846,12 +4867,17 @@
                 }
             } catch (e) { console.warn('Session refresh after cloud pull failed:', e); }
 
-            showToast(`✅ Data dari cloud berhasil diunduh! (${successCount} sheet)`);
-            const activeModule = document.querySelector('.module-section.active');
-            if (activeModule) {
-                const moduleId = activeModule.id.replace('module-', '');
-                loadModuleData(moduleId);
-            }
+            // Hindari double render saat auto-pull yang sering; debounce render
+            clearTimeout(window.__afterPullRenderTimer);
+            window.__afterPullRenderTimer = setTimeout(() => {
+                showToast(`✅ Data dari cloud berhasil diunduh! (${successCount} sheet)`);
+                const activeModule = document.querySelector('.module-section.active');
+                if (activeModule) {
+                    const moduleId = activeModule.id.replace('module-', '');
+                    loadModuleData(moduleId);
+                }
+            }, 200);
+            
         }
 
         // Auto-pull lintas-perangkat: saat login, saat tab aktif, saat online, dan tiap 3 menit
