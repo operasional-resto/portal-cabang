@@ -4725,6 +4725,35 @@
             const baseUrl = getApiUrl();
             if (!baseUrl) { showToast('Konfigurasi Web App URL belum diisi!'); showCloudAlert(); return; }
 
+            // Helper: GViz reader (fallback tanpa CORS) dari Spreadsheet ID
+            async function readViaGviz(sheetName) {
+                try {
+                    const cfg = JSON.parse(localStorage.getItem('spreadsheetConfig') || '{}');
+                    const sid = cfg.spreadsheetId || DEFAULT_SPREADSHEET_ID;
+                    if (!sid) return null;
+                    const url = `https://docs.google.com/spreadsheets/d/${sid}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
+                    const resp = await fetch(url, { method: 'GET', cache: 'no-store' });
+                    const text = await resp.text();
+                    const start = text.indexOf('{');
+                    const end = text.lastIndexOf('}');
+                    if (start === -1 || end === -1) return null;
+                    const json = JSON.parse(text.slice(start, end + 1));
+                    if (!json || !json.table) return null;
+                    const cols = (json.table.cols || []).map((c, i) => c && (c.label || c.id) ? (c.label || c.id) : `c${i}`);
+                    const rows = (json.table.rows || []).map(r => {
+                        const obj = {};
+                        (r.c || []).forEach((cell, i) => {
+                            obj[cols[i]] = cell && Object.prototype.hasOwnProperty.call(cell, 'v') ? (cell.v === null ? '' : cell.v) : '';
+                        });
+                        return obj;
+                    });
+                    return rows;
+                } catch (e) {
+                    console.warn('GViz fallback error:', e);
+                    return null;
+                }
+            }
+
             showToast('🔄 Mengunduh data dari cloud...');
             const sheets = [
                 { name: 'users', key: 'users' },
@@ -4752,28 +4781,13 @@
                     const res = await jsonp(`${baseUrl}?action=readp&sheet=${encodeURIComponent(sheet.name)}`);
                     if (res && res.success && Array.isArray(res.data)) {
                         dataArr = res.data;
-                    } else {
-                        // 2) Fallback proxy CORS yang lebih stabil (isomorphic-git)
-                        try {
-                            const readUrl = `${baseUrl}?action=read&sheet=${encodeURIComponent(sheet.name)}`;
-                            const proxyUrl = `https://cors.isomorphic-git.org/${encodeURIComponent(readUrl)}`;
-                            const resp = await fetch(proxyUrl);
-                            if (resp.ok) {
-                                const text = await resp.text();
-                                let json = null;
-                                try { json = JSON.parse(text); } catch(parseErr) {
-                                    console.warn(`⚠️ Proxy parse JSON gagal untuk ${sheet.name}:`, parseErr);
-                                }
-                                if (json && json.success && Array.isArray(json.data)) {
-                                    dataArr = json.data;
-                                } else {
-                                    console.warn(`⚠️ Pull ${sheet.name} via proxy gagal/empty`, json && json.error);
-                                }
-                            } else {
-                                console.warn(`⚠️ Proxy fetch failed for ${sheet.name}: HTTP ${resp.status}`);
-                            }
-                        } catch (px) {
-                            console.warn(`⚠️ Proxy error for ${sheet.name}:`, px);
+                    }
+
+                    // 2) Fallback GViz (publish/view only) bila JSONP gagal atau kosong
+                    if (!Array.isArray(dataArr)) {
+                        const gRows = await readViaGviz(sheet.name);
+                        if (Array.isArray(gRows)) {
+                            dataArr = gRows;
                         }
                     }
 
@@ -4785,7 +4799,7 @@
                         console.warn(`⚠️ Gagal menarik sheet ${sheet.name} (data kosong atau error)`);
                     }
 
-                    // Throttle untuk menghindari rate limit
+                    // Throttle untuk menghindari rate limit Apps Script / GViz
                     await new Promise(r => setTimeout(r, 200));
                 } catch (err) {
                     console.error(`❌ Error pulling ${sheet.name}:`, err);
