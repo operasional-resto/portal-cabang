@@ -3038,6 +3038,7 @@
             }
             const jadwal = JSON.parse(localStorage.getItem('jadwal') || '[]');
             const newItem = {
+                id: genId('jadwal'),
                 outlet: currentOutlet,
                 nama: document.getElementById('jadwalNama').value,
                 tanggal: document.getElementById('jadwalTanggal').value,
@@ -3233,6 +3234,7 @@
             const judulVal = document.getElementById('tugasJudul').value;
             const assignVal = document.getElementById('tugasAssign').value;
             const newItem = {
+                id: genId('tugas'),
                 outlet: currentOutlet,
                 judul: judulVal,
                 deskripsi: document.getElementById('tugasDeskripsi').value,
@@ -3310,6 +3312,7 @@
             }
             const prep = JSON.parse(localStorage.getItem('preparation') || '[]');
             const newItem = {
+                id: genId('preparation'),
                 outlet: currentOutlet,
                 nama: document.getElementById('prepNama').value,
                 jumlah: document.getElementById('prepJumlah').value,
@@ -3452,12 +3455,18 @@
             }
             localStorage.setItem('checklistStatus', JSON.stringify(statusMap));
 
+            // Push status ke cloud sebagai satu baris (key=dataMap)
+            try {
+                createSingleToCloud('checklistStatus', { id: todayKey, key: todayKey, data: statusMap[todayKey] });
+            } catch (e) { /* ignore push error */ }
+
             // Jika set ke OK, hapus corrective agar tidak tersimpan
             if (status === 'ok') {
                 const correctiveMap = JSON.parse(localStorage.getItem('checklistCorrective') || '{}');
                 if (correctiveMap[todayKey] && correctiveMap[todayKey][id]) {
                     delete correctiveMap[todayKey][id];
                     localStorage.setItem('checklistCorrective', JSON.stringify(correctiveMap));
+                    try { createSingleToCloud('checklistCorrective', { id: todayKey, key: todayKey, data: correctiveMap[todayKey] || {} }); } catch (e) {}
                 }
             }
             if (status) {
@@ -3489,6 +3498,8 @@
             if (!correctiveMap[todayKey]) correctiveMap[todayKey] = {};
             correctiveMap[todayKey][id] = (text || '').trim();
             localStorage.setItem('checklistCorrective', JSON.stringify(correctiveMap));
+            // Push corrective map as single row keyed by todayKey
+            try { createSingleToCloud('checklistCorrective', { id: todayKey, key: todayKey, data: correctiveMap[todayKey] }); } catch (e) {}
             const hint = document.getElementById(`corrHint-${id}`);
             if (hint) hint.style.display = (text || '').trim() ? 'none' : 'block';
         }
@@ -3525,6 +3536,7 @@
             }
             const reject = JSON.parse(localStorage.getItem('reject') || '[]');
             const newItem = {
+                id: genId('reject'),
                 outlet: currentOutlet,
                 tanggal: toYMD(new Date()),
                 nama: document.getElementById('rejectNama').value,
@@ -3950,6 +3962,7 @@
             const inv = JSON.parse(localStorage.getItem('inventori') || '[]');
             const nama = document.getElementById('invNama').value;
             const newItem = {
+                id: genId('inventori'),
                 outlet: currentOutlet,
                 nama: nama,
                 satuan: satuanOf(nama),
@@ -3992,6 +4005,7 @@
             // Catat riwayat Out Stock
             const outLogs = JSON.parse(localStorage.getItem('outStockLogs') || '[]');
             const newLog = {
+                id: genId('outlog'),
                 outlet: currentOutlet,
                 tanggal: toYMD(new Date()),
                 nama: nama,
@@ -4091,6 +4105,7 @@
         function saveLogbook() {
             const logs = JSON.parse(localStorage.getItem('logbook') || '[]');
             const newItem = {
+                id: genId('log'),
                 outlet: currentOutlet,
                 tanggal: new Date().toISOString().split('T')[0],
                 waktu: new Date().toTimeString().slice(0,5),
@@ -4356,6 +4371,7 @@
             
             const fb = JSON.parse(localStorage.getItem('feedback') || '[]');
             const newItem = {
+                id: genId('fb'),
                 outlet: currentOutlet,
                 tanggal: toYMD(new Date()),
                 nama: nama,
@@ -4994,6 +5010,10 @@
                 const el = document.getElementById(id);
                 if (el) el.value = '';
             });
+        }
+        // Generate stable id for new records so cloud/local stay consistent across devices
+        function genId(prefix) {
+            return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
         }
 
         // PWA Service Worker
