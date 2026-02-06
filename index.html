@@ -4793,7 +4793,7 @@
                 }
             }
 
-            showToast('🔄 Mengunduh data dari cloud...');
+            // silent pull: jangan tampilkan toast agar tidak mengganggu UI
             const sheets = [
                 { name: 'users', key: 'users' },
                 { name: 'outlets', key: 'outlets' },
@@ -4886,7 +4886,9 @@
             // Hindari double render saat auto-pull yang sering; debounce render
             clearTimeout(window.__afterPullRenderTimer);
             window.__afterPullRenderTimer = setTimeout(() => {
-                showToast(`✅ Data dari cloud berhasil diunduh! (${successCount} sheet)`);
+                // jangan tampilkan toast sukses agar UI bersih
+                // console.log digunakan sebagai log non-intrusif
+                console.log(`✅ Data dari cloud berhasil diunduh! (${successCount} sheet)`);
                 const activeModule = document.querySelector('.module-section.active');
                 if (activeModule) {
                     const moduleId = activeModule.id.replace('module-', '');
