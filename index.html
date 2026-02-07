@@ -5107,27 +5107,74 @@
             try {
                 const waktu = document.getElementById('checklistShift').value; // pra|during|after
                 const labelWaktu = waktu === 'pra' ? 'Pra Opening' : waktu === 'during' ? 'During' : 'After Closing';
-
-                const allItems = JSON.parse(localStorage.getItem('checklistItems') || '[]') || [];
-                const items = allItems.filter(i => i.waktu === waktu);
-
+                const items = (JSON.parse(localStorage.getItem('checklistItems') || '[]') || []).filter(i => i.waktu === waktu);
                 const today = toYMD(new Date());
                 const todayKey = `${today}_${currentOutlet}_${waktu}`;
-                const statusAll = JSON.parse(localStorage.getItem('checklistStatus') || '{}') || {};
-                const correctiveAll = JSON.parse(localStorage.getItem('checklistCorrective') || '{}') || {};
-                const statusMap = statusAll[todayKey] || {};
-                const correctiveMap = correctiveAll[todayKey] || {};
-
+                const statusMapAll = JSON.parse(localStorage.getItem('checklistStatus') || '{}') || {};
+                const correctiveMapAll = JSON.parse(localStorage.getItem('checklistCorrective') || '{}') || {};
+                const statusMap = statusMapAll[todayKey] || {};
+                const correctiveMap = correctiveMapAll[todayKey] || {};
                 const outlets = JSON.parse(localStorage.getItem('outlets') || '[]');
                 const outlet = outlets.find(o => o.id === currentOutlet);
 
-                // Hitung KPI ringkasan
-                const total = items.length;
-                let ok = 0, notOk = 0, pending = 0;
-                items.forEach(i => {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+
+                // Page header & footer styling
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const marginX = 40;
+                const headerY = 28;
+                const footerY = doc.internal.pageSize.getHeight() - 30;
+
+                doc.setProperties({ title: `Checklist Operasional - ${outlet ? outlet.nama : ''}` });
+
+                const drawHeaderFooter = (data) => {
+                    // Header bar
+                    doc.setFillColor(30, 58, 138); // indigo-900
+                    doc.rect(0, 0, pageWidth, 60, 'F');
+                    // Title
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(13);
+                    doc.text('Portal Cabang', marginX, headerY);
+                    doc.setFontSize(11);
+                    const sub = `Checklist Operasional • ${labelWaktu}`;
+                    doc.text(sub, marginX, headerY + 16);
+
+                    // Meta (right)
+                    const metaRight = [
+                        `Outlet: ${outlet ? outlet.nama : '-'}`,
+                        `Tanggal: ${new Date().toLocaleDateString('id-ID')}`,
+                        `Disusun oleh: ${currentUser?.nama || '-'}`
+                    ];
+                    doc.setFontSize(9);
+                    let yMeta = headerY - 6;
+                    metaRight.forEach((line, idx) => {
+                        doc.text(line, pageWidth - marginX, yMeta + idx * 12, { align: 'right' });
+                    });
+
+                    // Footer page number
+                    doc.setDrawColor(229, 231, 235);
+                    doc.setFillColor(249, 250, 251);
+                    doc.setTextColor(107, 114, 128);
+                    doc.setFontSize(8);
+                    doc.text(`Halaman ${doc.internal.getNumberOfPages()}`, pageWidth - marginX, footerY, { align: 'right' });
+                };
+
+                // Build table rows
+                const rows = items.map(i => {
                     const st = statusMap[i.id] || '';
+                    const corr = (correctiveMap[i.id] || '').trim();
+                    const stLabel = st === 'ok' ? 'OK' : (st === 'not_ok' ? 'Tidak OK' : '-');
+                    const corrText = st === 'not_ok' ? (corr || '-') : '-';
+                    return [i.kategori || '-', i.nama || '-', stLabel, corrText];
+                });
+
+                // Compute progress for small badge (optional)
+                let total = items.length, ok = 0, notOk = 0, pending = 0;
+                items.forEach(i => {
+                    const st = statusMap[i.id];
                     if (st === 'ok') ok++;
-                    if (st === 'not_ok') {
+                    else if (st === 'not_ok') {
                         notOk++;
                         const cap = (correctiveMap[i.id] || '').trim();
                         if (!cap) pending++;
@@ -5136,92 +5183,85 @@
                 const completed = ok + (notOk - pending);
                 const percent = total ? Math.round((completed / total) * 100) : 0;
 
-                // Siapkan baris tabel, urutkan per kategori lalu nama
-                const sorted = items.slice().sort((a,b) => {
-                    const kc = String(a.kategori||'').localeCompare(String(b.kategori||''), 'id');
-                    if (kc !== 0) return kc;
-                    return String(a.nama||'').localeCompare(String(b.nama||''), 'id');
-                });
-                const rows = sorted.map((i, idx) => {
-                    const st = statusMap[i.id] || '';
-                    const corr = (correctiveMap[i.id] || '').trim();
-                    const sText = st === 'ok' ? 'OK' : (st === 'not_ok' ? 'Tidak OK' : '-');
-                    return [String(i.kategori||'-'), String(i.nama||'-'), sText, (st === 'not_ok' ? (corr || '-') : '-')];
-                });
+                // Body top info band (under header)
+                doc.addPage(); // ensure didDrawPage executes for first page too by forcing hook via autoTable
+                doc.deletePage(doc.internal.getNumberOfPages());
 
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
-                const pageWidth = doc.internal.pageSize.getWidth();
-
-                // Header
-                doc.setFontSize(16); doc.setFont(undefined, 'bold');
-                doc.text('Checklist Operasional - Portal Cabang', 40, 40);
-                doc.setFontSize(10); doc.setFont(undefined, 'normal');
-                const outletName = outlet ? outlet.nama : '-';
-                const tanggalText = new Date().toLocaleDateString('id-ID', { day:'2-digit', month:'long', year:'numeric' });
-                doc.text(`Outlet  : ${outletName}`, 40, 58);
-                doc.text(`Tanggal : ${tanggalText}`, 40, 72);
-                doc.text(`Waktu   : ${labelWaktu}`, 40, 86);
-
-                // Ringkasan box
-                const boxX = 300, boxY = 50, boxW = pageWidth - boxX - 40, boxH = 60;
-                doc.setDrawColor(220); doc.setLineWidth(0.8); doc.roundedRect(boxX, boxY, boxW, boxH, 6, 6);
-                doc.setFontSize(10);
-                doc.text(`Total: ${total}`, boxX + 10, boxY + 16);
-                doc.text(`OK: ${ok}`, boxX + 80, boxY + 16);
-                doc.text(`Tidak OK: ${notOk}`, boxX + 140, boxY + 16);
-                doc.text(`Pending CAPA: ${pending}`, boxX + 230, boxY + 16);
-                // Progress bar
-                const pbX = boxX + 10, pbY = boxY + 32, pbW = boxW - 20, pbH = 10;
-                doc.setDrawColor(230); doc.setFillColor(240); doc.roundedRect(pbX, pbY, pbW, pbH, 5, 5, 'F');
-                const progW = Math.max(0, Math.min(pbW * (percent/100), pbW));
-                doc.setFillColor(34,197,94); // green-500
-                doc.roundedRect(pbX, pbY, progW, pbH, 5, 5, 'F');
-                doc.setFontSize(9); doc.setTextColor(70);
-                doc.text(`${percent}%`, pbX + pbW + 6, pbY + pbH - 1);
-                doc.setTextColor(0);
-
-                // Tabel checklist
-                const head = [['Kategori', 'Item Checklist', 'Status', 'Tindakan Perbaikan (CAPA)']];
-                const startY = boxY + boxH + 20;
                 doc.autoTable({
-                    startY,
-                    head,
+                    startY: 80,
+                    head: [['Kategori', 'Item Checklist', 'Status', 'Tindakan Perbaikan (CAPA)']],
                     body: rows.length ? rows : [['-', '-', '-', '-']],
-                    styles: { fontSize: 8, cellPadding: 4, valign: 'top' },
-                    headStyles: { fillColor: [30,58,138], textColor: 255 },
+                    styles: { fontSize: 9, cellPadding: 6, valign: 'top' },
+                    headStyles: { fillColor: [30, 58, 138], textColor: 255, fontStyle: 'bold' },
                     columnStyles: {
-                        0: { cellWidth: 100 },
-                        1: { cellWidth: 230 },
-                        2: { cellWidth: 70, halign: 'center' },
-                        3: { cellWidth: 120 }
+                        0: { cellWidth: 110 },
+                        1: { cellWidth: 250 },
+                        2: { cellWidth: 80, halign: 'center' },
+                        3: { cellWidth: 140 }
                     },
-                    alternatingRowStyles: { fillColor: [248,250,252] },
+                    alternateRowStyles: { fillColor: [250, 250, 250] },
                     didDrawPage: (data) => {
-                        // Footer nomor halaman
-                        const page = doc.internal.getNumberOfPages();
-                        const txt = `Halaman ${page}`;
-                        doc.setFontSize(8); doc.setTextColor(120);
-                        doc.text(txt, pageWidth - 80, doc.internal.pageSize.getHeight() - 14);
-                        doc.setTextColor(0);
+                        drawHeaderFooter(data);
+                        // Small progress chip under header
+                        const chipY = 60;
+                        doc.setFillColor(236, 253, 245); // green-50
+                        doc.setDrawColor(16, 185, 129); // green-500
+                        doc.roundedRect(marginX, chipY, 96, 20, 4, 4, 'FD');
+                        doc.setTextColor(5, 150, 105); // green-600
+                        doc.setFontSize(9);
+                        doc.text(`Progress: ${percent}%`, marginX + 8, chipY + 13);
+                        // Shift chip
+                        const shiftText = `Waktu: ${labelWaktu}`;
+                        const chip2X = marginX + 110;
+                        doc.setFillColor(239, 246, 255); // blue-50
+                        doc.setDrawColor(59, 130, 246);  // blue-500
+                        doc.roundedRect(chip2X, chipY, 120, 20, 4, 4, 'FD');
+                        doc.setTextColor(37, 99, 235); // blue-600
+                        doc.text(shiftText, chip2X + 8, chipY + 13);
+                        // Outlet chip
+                        const chip3X = chip2X + 130;
+                        doc.setFillColor(238, 242, 255); // indigo-50
+                        doc.setDrawColor(99, 102, 241);  // indigo-500
+                        const outletText = `Outlet: ${(outlet ? outlet.nama : '-')}`;
+                        const w = doc.getTextWidth(outletText) + 20;
+                        doc.roundedRect(chip3X, chipY, Math.max(120, w), 20, 4, 4, 'FD');
+                        doc.setTextColor(79, 70, 229); // indigo-600
+                        doc.text(outletText, chip3X + 8, chipY + 13);
+                    },
+                    didParseCell: (hookData) => {
+                        // Center align status cell text
+                        if (hookData.section === 'body' && hookData.column.index === 2) {
+                            hookData.cell.styles.halign = 'center';
+                            const v = (hookData.cell.raw || '').toString().toLowerCase();
+                            if (v.includes('tidak')) {
+                                hookData.cell.styles.textColor = [220, 38, 38]; // red-600
+                                hookData.cell.styles.fontStyle = 'bold';
+                            } else if (v.includes('ok')) {
+                                hookData.cell.styles.textColor = [5, 150, 105]; // green-600
+                                hookData.cell.styles.fontStyle = 'bold';
+                            }
+                        }
                     }
                 });
 
-                // Blok tanda tangan
-                let y = doc.lastAutoTable ? doc.lastAutoTable.finalY + 24 : (startY + 200);
-                const lineW = (pageWidth - 80) / 3 - 20;
-                const names = ['Dibuat oleh', 'Diperiksa oleh', 'Mengetahui'];
-                for (let i = 0; i < 3; i++) {
-                    const x = 40 + i * (lineW + 20);
-                    doc.setFontSize(9); doc.text(names[i], x, y);
-                    doc.setDrawColor(180); doc.line(x, y + 48, x + lineW, y + 48);
-                }
-                doc.setFontSize(8); doc.setTextColor(120);
-                doc.text(`Dicetak: ${new Date().toLocaleString('id-ID')}`, 40, y + 70);
-                doc.setTextColor(0);
+                // Signature block
+                const endY = doc.lastAutoTable.finalY + 24;
+                const sigTop = Math.min(endY, doc.internal.pageSize.getHeight() - 160);
+                doc.setFontSize(10);
+                doc.setTextColor(55, 65, 81);
+                doc.text('Catatan:', marginX, sigTop);
+                doc.setDrawColor(209, 213, 219);
+                doc.rect(marginX, sigTop + 6, pageWidth - marginX * 2, 40);
 
-                const fname = `Checklist_${(outlet ? outlet.nama.replace(/\s+/g,'_') : 'Outlet')}_${today}_${waktu}.pdf`;
-                doc.save(fname);
+                const sigY = sigTop + 60;
+                const colW = (pageWidth - marginX * 2) / 2;
+                doc.text('Diperiksa oleh (Kepala Cabang):', marginX, sigY);
+                doc.line(marginX, sigY + 4, marginX + colW - 20, sigY + 4);
+                doc.text('Disetujui oleh (HO/AM):', marginX + colW, sigY);
+                doc.line(marginX + colW, sigY + 4, pageWidth - marginX, sigY + 4);
+
+                const filename = `Checklist_${(outlet ? outlet.nama.replace(/\s+/g, '_') : 'Outlet')}_${today}_${waktu}.pdf`;
+                doc.save(filename);
             } catch (e) {
                 console.error('Export Checklist PDF failed:', e);
             }
