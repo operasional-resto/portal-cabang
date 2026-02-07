@@ -3614,7 +3614,18 @@
             const select = document.getElementById('checklistShift');
             const waktu = select.value; // pra | during | after
             const labelWaktu = waktu === 'pra' ? 'Pra Opening' : waktu === 'during' ? 'During' : 'After Closing';
-            const items = JSON.parse(localStorage.getItem('checklistItems') || '[]').filter(i => (i.waktu ? i.waktu === waktu : (i.shift || []).includes(waktu)));
+
+            // Ambil daftar master lalu filter KETAT hanya berdasarkan properti waktu yang valid
+            const itemsRaw = JSON.parse(localStorage.getItem('checklistItems') || '[]')
+                .filter(i => i && i.waktu && (i.waktu === waktu));
+
+            // Deduplikasi berdasarkan nama (case-insensitive) agar tidak dobel saat hasil pull/merge
+            const byName = new Map();
+            itemsRaw.forEach(i => {
+                const key = (i.nama || '').toString().toLowerCase().trim();
+                if (!byName.has(key)) byName.set(key, i);
+            });
+            const items = Array.from(byName.values());
 
             const today = toYMD(new Date());
             const todayKey = `${today}_${currentOutlet}_${waktu}`;
@@ -3624,8 +3635,11 @@
             const todayStatus = statusMap[todayKey] || {}; // id -> 'ok' | 'not_ok'
             const todayCorrective = correctiveMap[todayKey] || {}; // id -> text
 
-            // Stats & progress
-            const total = items.length;
+            // Gunakan total tetap agar denominator tidak berubah-ubah saat auto-pull
+            const fixedTotals = { pra: 77, during: 77, after: 17 };
+            const total = fixedTotals[waktu] != null ? fixedTotals[waktu] : items.length;
+
+            // Hitung statistik dari item yang tampil (OK/Tidak OK/Pending CAPA)
             let ok = 0, notOk = 0, pending = 0;
             items.forEach(i => {
                 const st = todayStatus[i.id];
@@ -5613,7 +5627,492 @@
             showToast('🔎 Diagnosa selesai. Lihat Console untuk detail.');
         }
 
+        // ====== CUSTOM PATCH: After Closing Master + Time Gating (WIB) ======
+        (function(){
+            // Helper: get hour/minute in Asia/Jakarta (WIB)
+            function getJakartaHM() {
+                try {
+                    const parts = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Jakarta', hour12: false, hour: '2-digit', minute: '2-digit' }).formatToParts(new Date());
+                    const h = parseInt(parts.find(p=>p.type==='hour')?.value || '0', 10);
+                    const m = parseInt(parts.find(p=>p.type==='minute')?.value || '0', 10);
+                    return { h, m };
+                } catch (e) {
+                    const now = new Date();
+                    return { h: now.getHours(), m: now.getMinutes() };
+                }
+            }
+            // WIB window: 21:00 - 00:00 (inclusive at 00:00)
+            function isWithinAfterClosingWIB() {
+                const { h } = getJakartaHM();
+                return (h >= 21 && h <= 23) || h === 0; // 21:00-23:59 and 00:00
+            }
+            // Enforce UI: hide/disable After option outside window; auto-switch if needed
+            function updateChecklistShiftOptionsVisibility() {
+                try {
+                    const sel = document.getElementById('checklistShift');
+                    if (!sel) return;
+                    const optAfter = Array.from(sel.options).find(o => (o.value||'') === 'after');
+                    if (!optAfter) return;
+                    const allowed = isWithinAfterClosingWIB();
+                    optAfter.disabled = !allowed;
+                    optAfter.hidden = !allowed;
+                    if (!allowed && sel.value === 'after') {
+                        sel.value = 'pra';
+                    }
+                } catch (e) { /* noop */ }
+            }
+            // Force update After Closing master list with the exact items from request
+            function forceUpdateAfterClosingMasterWithNewList() {
+                try {
+                    const afterList = [
+                        "Permintaan barang ke gudang sudah di lakukan dan diverifikasi oleh kacab atau staff penggantinya",
+                        "Labeling pada pada barang datang sudah dilakukan",
+                        "Stock Opname sudah dilakukan dan diinput kedalam form rekapan pemakaian",
+                        "Bahan baku sisa sudah masuk pendingin (bahan baku food & juice)",
+                        "Semua peralatan saji dan kerja dalam kondisi bersih (dapur, juicer, kasir, dinning)",
+                        "Grase Trap dan Gotter dalam kondisi bersih (dapur & juicer)",
+                        "Semua area dalam kondisi bersih meliputi semua dinding, semua kolong meja kerja, pendingin, meja makan dan bangku dan atau sofa dalam kondisi bersih",
+                        "Semua area bebas hama (tikus, kecoa, semut, lalat)",
+                        "Tea maker, Microwave, Toaster, Magic com, Mesin cup sealer, Mesin ice cube, Mesin cuci piring dalam kondisi off",
+                        "Exaust Pan, Kompor gas, kompor listrik  dalam kondisi off",
+                        "Valve Gas central, Valve kran air dalam kondisi off",
+                        "Lampu penerangan dan lampu  hias area dinning, dapur, juicer, kasir serta lampu logo dalam kondisi off",
+                        "Komputer admin, POS, Semua printer, Monitor checker, UPS dalam kondisi off",
+                        "Uang Omzet, Kas Kecil, Modal sudah masuk ke brangkas dan kodenya diputar acak",
+                        "Kipas Angin / AC, TV display, Audio player dalam kondisi off",
+                        "Tidak ada sampah yang tertinggal di dalam cabang",
+                        "Semua pintu dan jendela dalam kondisi terkunci"
+                    ];
+                    let items = [];
+                    try { items = JSON.parse(localStorage.getItem('checklistItems') || '[]'); } catch(e){ items = []; }
+                    // Remove existing 'after' items
+                    const others = items.filter(i => i && i.waktu !== 'after');
+                    // Build new after items with fresh ids
+                    let idCounter = Date.now();
+                    const newAfter = afterList.map(n => ({ id: idCounter++, kategori: 'operasional', nama: n, waktu: 'after', status: 'aktif' }));
+                    const merged = [...others, ...newAfter];
+                    localStorage.setItem('checklistItems', JSON.stringify(merged));
+                    // Optional: also push to cloud only the checklistItems (best-effort)
+                    try {
+                        const baseUrl = (JSON.parse(localStorage.getItem('spreadsheetConfig')||'{}').webAppUrl || '').replace(/\/$/, '');
+                        if (baseUrl) {
+                            const dataStr = JSON.stringify(merged);
+                            const enc = encodeURIComponent(dataStr);
+                            // If too long, clear then create per item
+                            if (enc.length > 1400) {
+                                fetch(`${baseUrl}?action=sync&sheet=checklistItems&data=%5B%5D`).catch(()=>{});
+                                newAfter.forEach(row => fetch(`${baseUrl}?action=create&sheet=checklistItems&data=${encodeURIComponent(JSON.stringify(row))}`).catch(()=>{}));
+                            } else {
+                                fetch(`${baseUrl}?action=sync&sheet=checklistItems&data=${enc}`).catch(()=>{});
+                            }
+                        }
+                    } catch(e) {/* silent */}
+                } catch (e) { /* noop */ }
+            }
+
+            // Hook loadChecklist to enforce time gating before executing original logic
+            const __orig_loadChecklist = window.loadChecklist;
+            if (typeof __orig_loadChecklist === 'function') {
+                window.loadChecklist = function() {
+                    updateChecklistShiftOptionsVisibility();
+                    const sel = document.getElementById('checklistShift');
+                    if (sel && sel.value === 'after' && !isWithinAfterClosingWIB()) {
+                        sel.value = 'pra';
+                    }
+                    return __orig_loadChecklist.apply(this, arguments);
+                };
+            }
+            // Hook showModule to refresh gating when opening checklist module
+            const __orig_showModule = window.showModule;
+            if (typeof __orig_showModule === 'function') {
+                window.showModule = function(module) {
+                    const r = __orig_showModule.apply(this, arguments);
+                    if (module === 'checklist') {
+                        updateChecklistShiftOptionsVisibility();
+                    }
+                    return r;
+                };
+            }
+
+            // Expose helpers in window (optional for debug)
+            window.__pc_isWithinAfterClosingWIB = isWithinAfterClosingWIB;
+            window.__pc_updateAfterClosingMaster = forceUpdateAfterClosingMasterWithNewList;
+
+            // Run once on load to ensure After Closing list is in sync
+            try { forceUpdateAfterClosingMasterWithNewList(); } catch (e) {}
+        })();
+
+        // === PATCH: Pra Opening Master + Time Gating (WIB 03:00-10:00) ===
+        (function(){
+            // Daftar Pra Opening persis sesuai instruksi
+            const PRA_OPENING_LIST = [
+                "Muka bersih tidak berminyak dan merias wajah sesuai standar",
+                "Kulit tidak kering dan tidak bersisik memakai body lotion",
+                "Kuku pendek dan tidak menggunakan cat kuku",
+                "Bulu atau rambut hidung tidak menjorok keluar lubang hidung",
+                "Tidak ada bau yang tidak sedap dari badan, mulut, telinga atau bagian tubuh lainnya termasuk parfume yang aromanya menyengat",
+                "Mengenakan baju dan celana sesuai standar bentuk, warna bahan yang ditetapkan dalam kondisi bersih dan rapi",
+                "Memakai sepatu pantofel warna hitam dengan maksimal tinggi 3 cm dalam kondisi bersih dan mengkilap (bersemir)",
+                "Memakai ikat pinggang warna hitam polos terbuat dari kulit bukan kain atau sintetis dengan kepala gesper yang sederhana",
+                "Memakai kaos singlet warna putih",
+                "Tidak memakai gelang, anting, kalung, jam tangan atau aksesoris lainnya",
+                "Tidak ada tato di bagian tubuh yang terbuka",
+                "Pakai name tag sesuai standar yang ditetapkan",
+                "Memakai masker hitam dan kelengkapan kerja sesuai jabatannya",
+                "Rambut rapi dengan maksimal panjang 5 cm, tidak kusam/kering, rapi menggunakan minyak rambut yang tidak berbau menyengat",
+                "Tidak memelihara kumis, jenggot dan jambang dipotong sejajar ekor mata",
+                "Hijab dalam keadaan rapi, terutama pada bagian leher harus kelihatan bentuk leher dengan bantuan jepit/bros tanpa manik dan warna sesuai warna hijab",
+                "Dilarang menggunakan jarum pentul",
+                "Memakai dalaman hijab berwarna hitam polos",
+                "Rambut panjang harus memakai hairnet dan poni tidak menjuntai ke depan menutupi dahi",
+                "Order Barang sudah dicek kacab, diinput dan dikirim ke bagian gudang",
+                "Labeling pada pada barang datang, hasil prepare dan atau hasil produksi sudah dilakukan",
+                "Rekap Pemakaian sudah dikerjakan dan dikirim ke bagian akuntansi",
+                "Pencatatan produksi cabang, produksi pusat sudah dikerjakan dan diverifikasi",
+                "Laporan Piutang (Bagi cabang yang ada transaksi piutang) sudah dikerjakan dan atau dikirim ke bagian akuntansi",
+                "Kesiapan Kelengkapan, Kebersihan, serta Kecukupan Sumber Daya (Area Dinning, Juicer, Kasir, Dapur)",
+                "Sendok, garpu, pisau roti dan sumpit tersedia dalam kondisi cukup",
+                "Tissue meja, saos, kecap, sambal dalam kondisi terisi cukup dan tidak belepotan",
+                "Nampan, buku menu, slip order dan alat tulis tersedia dalam kondisi bersih dan cukup",
+                "Kain Lap Meja (waiter, juicer, kasir dan dapur) dalam kondisi bersih dan tidak ada bau tidak sedap",
+                "Kain Lap Sendok, gelas dan piring dalam kondisi bersih dan tidak ada bau tidak sedap",
+                "Hand sanitizer pada posisi pintu masuk & kasir",
+                "Disinfektan tersedia dalam kondisi cukup",
+                "Semua meja, kursi, sofa, kursi anak  dalam kondisi bersih dan tertata rapi",
+                "Semua pegangan pintu, pegangan anak tangga, pembatas antrian dalam kondisi bersih",
+                "Wastafel dalam kondisi bersih, tersedia hand soap, tissue, tempat sampah, cermin",
+                "Tempat Sampah semua area dalam kondisi bersih dan tidak ada bau tidak sedap",
+                "Pad counter dalam kondisi bersih dan barang-barang tertata rapi",
+                "Semua Dinding (dining, juicer, kasir, dapur, gudang) dalam kondisi bersih",
+                "Semua lantai (dining, kasir, juicer, dapur, gudang) dan gotter dalam kondisi bersih",
+                "Kaca (jendela, interior) dalam kondisi bersih tidak buram",
+                "Diffuser AC / AC dalam kondisi bersih dan dingin",
+                "TV display, Audio player dalam kondisi normal dan bersih",
+                "Interior (gambar dinding, lampu gantung, furniture) dalam kondisi bersih",
+                "Service Extension dalam kondisi rapi dan bersih",
+                "Lampu (dining, box menu, Logo) dalam kondisi menyala normal dan bersih",
+                "Tanaman Hias tidak ada yang layu daunnya",
+                "Sarana Promosi (x banner, tripod banner, standing menu, baliho) dalam kondisi layak dan bersih",
+                "Peralatan proses juicer (Blender, Juicer, extractor, sendok ukur, pisau, talenan, saringan juice, teh, scoop es krim, tea maker, mesin serut es, mesin cup sealer, es maker, timbangan) dalam kondisi berfungsi normal dan bersih",
+                "Alat saji (Plate coupe 7.5, 8, 9, 10,5. Saucer 4,25. Bowl 4.5, 6, Bowl omega 7, square plate besar, kecil, piring snack, piring lauk, mangkok kuring/ramen, saucer, sendok, gelas juice, gelas teh, cangkir kopi, lunch box, box gurame, paper bowl set 650, 800, 1000, cup oval, cup 400, 500, sedotan) dalam kondisi cukup dan bersih",
+                "Meja kerja di semua area dalam kondisi bersih dan penataan barang-barang rapi",
+                "Alegro dalam kondisi berfungsi normal, bersih dan penataan buah rapi",
+                "Freezer, under freezer, chiller, under chiller, salad case (gasket, kaca, rak, kipas, handle, body) juicer dan dapur dalam kondisi berfungsi normal, bersih, bunga es tidak tebal dan penataan bahan baku rapi",
+                "Chiller, salad case juicer dan dapur dalam kondisi normal dan bersih",
+                "Tempat prepare di area juicer dan dapur (food pan, kitchen set, termos nasi, keranjang, toples, box risol, box thawing) dalam kondisi tertutup dan dalam kondisi bersih",
+                "Tempat penyimpanan bahan baku & produk (rak susun, rak tempel dan lemari penyimpanan termasuk laci-laci) dalam kondisi bersih dan barang-barang tersusun rapi",
+                "Sink, grease trap, grease induk dan gutter dalam kondisi bersih",
+                "Langit-langit semua area dalam kondisi baik dan bersih",
+                "Tempat sampah semua area dalam kondisi bersih dan tidak ada bau tidak sedap",
+                "Dinding semua area dalam kondisi bersih",
+                "Mesin POS, alat pembayaran (EDC BCA, Mandiri, BRI, Gobiz, Grabfood, Handphone, HT dalam kondisi normal dan bersih",
+                "Setor omset maksimal jam 14.00 dan laporan setor omzet ke bagian keuangan",
+                "Kelengkapan peralatan kasir (kalkulator, money detector, stepless, isolatif) dalam kondisi cukup",
+                "Uang receh tersedia cukup (20rb, 10rb, 5rb, 2rb, 1rb, 500, 200, 100)",
+                "Peralatan proses cook (steamer nasi, rice cooker, gas cooker, steamer, magic com, microwave, toaster, panci, wajan, sodet, saringan mie, saringan minyak, jepitan makanan, deep fryer, teflon, cetakan nasi, kompor high, kompor low, pisau, talenan, parutan keju, timbangan) dalam kondisi layak pakai, bersih dan bebas dari kontaminasi antar alat, maupun dari  dari hal-hal lainnya",
+                "Hood dan exhaust dalam kondisi bersih dan berfungsi normal",
+                "Mesin cuci piring dan mesin pembuat es dalam kondisi bersih dan berfungsi normal",
+                "Semua area bebas dari hama(tikus, kecoa, lalat, semut)",
+                "Fasilitas toilet di dalam cabang",
+                "Handle pintu dan kunci pintu berfungsi normal dan bersih",
+                "Aroma toilet harum atau tidak berbau tidak sedap",
+                "Lantai dan dinding dalam kondisi bersih dan kering",
+                "Lampu penerangan tidak ada yang mati dan fan exhaust dengan kondisi bersih dan berfungsi normal",
+                "Kloset dalam kondisi baik,bersih dan kering",
+                "Shower kloset berfungsi normal dan bersih",
+                "Wastafel dalam kondisi normal dan bersih serta tersedia hand soap dan tissue",
+                "Urinoir dalam kondisi bersih, berfungsi normal dan tidak beraroma tidak sedap",
+                "Tempat Sampah dalam kondisi bersih tidak ada bau tidak sedap"
+            ];
+
+            function getJakartaHM() {
+                try {
+                    const parts = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Jakarta', hour12: false, hour: '2-digit', minute: '2-digit' }).formatToParts(new Date());
+                    const h = parseInt(parts.find(p=>p.type==='hour')?.value || '0', 10);
+                    const m = parseInt(parts.find(p=>p.type==='minute')?.value || '0', 10);
+                    return { h, m };
+                } catch (e) {
+                    const now = new Date();
+                    return { h: now.getHours(), m: now.getMinutes() };
+                }
+            }
+            function isWithinPraOpeningWIB(){
+                const { h } = getJakartaHM();
+                return (h >= 3 && h < 10); // 03:00 - 09:59 WIB
+            }
+
+            function forceUpdatePraOpeningMasterWithNewList(){
+                try {
+                    let items = [];
+                    try { items = JSON.parse(localStorage.getItem('checklistItems') || '[]'); } catch(e){ items = []; }
+                    // Remove existing 'pra' items
+                    const others = items.filter(i => i && i.waktu !== 'pra');
+                    // Build new pra with fresh ids
+                    let idCounter = Date.now();
+                    const newPra = PRA_OPENING_LIST.map(n => ({ id: idCounter++, kategori: 'operasional', nama: n, waktu: 'pra', status: 'aktif' }));
+                    const merged = [...others, ...newPra];
+                    localStorage.setItem('checklistItems', JSON.stringify(merged));
+                    // Best-effort sync to cloud (only checklistItems)
+                    try {
+                        const baseUrl = (JSON.parse(localStorage.getItem('spreadsheetConfig')||'{}').webAppUrl || '').replace(/\/$/, '');
+                        if (baseUrl) {
+                            const dataStr = JSON.stringify(merged);
+                            const encData = encodeURIComponent(dataStr);
+                            const syncEmpty = () => fetch(`${baseUrl}?action=sync&sheet=checklistItems&data=%5B%5D`).catch(()=>{});
+                            if (encData.length > 1400) {
+                                syncEmpty().then(()=>{
+                                    newPra.forEach(row => fetch(`${baseUrl}?action=create&sheet=checklistItems&data=${encodeURIComponent(JSON.stringify(row))}`).catch(()=>{}));
+                                });
+                            } else {
+                                fetch(`${baseUrl}?action=sync&sheet=checklistItems&data=${encData}`).catch(()=>{});
+                            }
+                        }
+                    } catch(e){}
+                } catch(e){}
+            }
+
+            // Patch loadChecklist to enforce time gating for Pra Opening
+            const __orig_loadChecklist_pra = window.loadChecklist;
+            if (typeof __orig_loadChecklist_pra === 'function') {
+                window.loadChecklist = function(){
+                    try {
+                        const sel = document.getElementById('checklistShift');
+                        if (sel) {
+                            const optPra = Array.from(sel.options).find(o => (o.value||'') === 'pra');
+                            const allowPra = isWithinPraOpeningWIB();
+                            if (optPra) {
+                                optPra.disabled = !allowPra;
+                                optPra.hidden = !allowPra;
+                            }
+                            if (sel.value === 'pra' && !allowPra) {
+                                // Pindah ke during jika tersedia, jika tidak ke after, jika tidak tetap pra (fallback)
+                                if (Array.from(sel.options).some(o=>o.value==='during')) sel.value = 'during';
+                                else if (Array.from(sel.options).some(o=>o.value==='after')) sel.value = 'after';
+                            }
+                        }
+                    } catch(e){}
+                    return __orig_loadChecklist_pra.apply(this, arguments);
+                };
+            }
+
+            // Jalankan update master Pra Opening sekali saat load
+            try { forceUpdatePraOpeningMasterWithNewList(); } catch(e){}
+        })();
+
+        // ====== PATCH: During Master + Time Gating (WIB 15:00-18:00) ======
+        (function(){
+            const DURING_LIST = [
+                'Muka bersih tidak berminyak dan merias wajah sesuai standar',
+                'Kulit tidak kering dan tidak bersisik memakai body lotion',
+                'Kuku pendek dan tidak menggunakan cat kuku',
+                'Bulu atau rambut hidung tidak menjorok keluar lubang hidung',
+                'Tidak ada bau yang tidak sedap dari badan, mulut, telinga atau bagian tubuh lainnya termasuk parfume yang aromanya menyengat',
+                'Mengenakan baju dan celana sesuai standar bentuk, warna bahan yang ditetapkan dalam kondisi bersih dan rapi',
+                'Memakai sepatu pantofel warna hitam dengan maksimal tinggi 3 cm dalam kondisi bersih dan mengkilap (bersemir)',
+                'Memakai ikat pinggang warna hitam polos terbuat dari kulit bukan kain atau sintetis dengan kepala gesper yang sederhana',
+                'Memakai kaos singlet warna putih',
+                'Tidak memakai gelang, anting, kalung, jam tangan atau aksesoris lainnya',
+                'Tidak ada tato di bagian tubuh yang terbuka',
+                'Pakai name tag sesuai standar yang ditetapkan',
+                'Memakai masker hitam dan kelengkapan kerja sesuai jabatannya',
+                'Rambut rapi dengan maksimal panjang 5 cm, tidak kusam/kering, rapi menggunakan minyak rambut yang tidak berbau menyengat',
+                'Tidak memelihara kumis, jenggot dan jambang dipotong sejajar ekor mata',
+                'Hijab dalam keadaan rapi, terutama pada bagian leher harus kelihatan bentuk leher dengan bantuan jepit/bros tanpa manik dan warna sesuai warna hijab',
+                'Dilarang menggunakan jarum pentul',
+                'Memakai dalaman hijab berwarna hitam polos',
+                'Rambut panjang harus memakai hairnet dan poni tidak menjuntai ke depan menutupi dahi',
+                'Order Barang sudah dicek kacab, diinput dan dikirim ke bagian gudang',
+                'Labeling pada pada barang datang, hasil prepare dan atau hasil produksi sudah dilakukan',
+                'Rekap Pemakaian sudah dikerjakan dan dikirim ke bagian akuntansi',
+                'Pencatatan produksi cabang, produksi pusat sudah dikerjakan dan diverifikasi',
+                'Laporan Piutang (Bagi cabang yang ada transaksi piutang) sudah dikerjakan dan atau dikirim ke bagian akuntansi',
+                'Kesiapan Kelengkapan, Kebersihan, serta Kecukupan Sumber Daya (Area Dinning, Juicer, Kasir, Dapur)',
+                'Sendok, garpu, pisau roti dan sumpit tersedia dalam kondisi cukup',
+                'Tissue meja, saos, kecap, sambal dalam kondisi terisi cukup dan tidak belepotan',
+                'Nampan, buku menu, slip order dan alat tulis tersedia dalam kondisi bersih dan cukup',
+                'Kain Lap Meja (waiter, juicer, kasir dan dapur) dalam kondisi bersih dan tidak ada bau tidak sedap',
+                'Kain Lap Sendok, gelas dan piring dalam kondisi bersih dan tidak ada bau tidak sedap',
+                'Hand sanitizer pada posisi pintu masuk & kasir',
+                'Disinfektan tersedia dalam kondisi cukup',
+                'Semua meja, kursi, sofa, kursi anak  dalam kondisi bersih dan tertata rapi',
+                'Semua pegangan pintu, pegangan anak tangga, pembatas antrian dalam kondisi bersih',
+                'Wastafel dalam kondisi bersih, tersedia hand soap, tissue, tempat sampah, cermin',
+                'Tempat Sampah semua area dalam kondisi bersih dan tidak ada bau tidak sedap',
+                'Pad counter dalam kondisi bersih dan barang-barang tertata rapi',
+                'Semua Dinding (dining, juicer, kasir, dapur, gudang) dalam kondisi bersih',
+                'Semua lantai (dining, kasir, juicer, dapur, gudang) dan gotter dalam kondisi bersih',
+                'Kaca (jendela, interior) dalam kondisi bersih tidak buram',
+                'Diffuser AC / AC dalam kondisi bersih dan dingin',
+                'TV display, Audio player dalam kondisi normal dan bersih',
+                'Interior (gambar dinding, lampu gantung, furniture) dalam kondisi bersih',
+                'Service Extension dalam kondisi rapi dan bersih',
+                'Lampu (dining, box menu, Logo) dalam kondisi menyala normal dan bersih',
+                'Tanaman Hias tidak ada yang layu daunnya',
+                'Sarana Promosi (x banner, tripod banner, standing menu, baliho) dalam kondisi layak dan bersih',
+                'Peralatan proses juicer (Blender, Juicer, extractor, sendok ukur, pisau, talenan, saringan juice, teh, scoop es krim, tea maker, mesin serut es, mesin cup sealer, es maker, timbangan) dalam kondisi berfungsi normal dan bersih',
+                'Alat saji (Plate coupe 7.5, 8, 9, 10,5. Saucer 4,25. Bowl 4.5, 6, Bowl omega 7, square plate besar, kecil, piring snack, piring lauk, mangkok kuring/ramen, saucer, sendok, gelas juice, gelas teh, cangkir kopi, lunch box, box gurame, paper bowl set 650, 800, 1000, cup oval, cup 400, 500, sedotan) dalam kondisi cukup dan bersih',
+                'Meja kerja di semua area dalam kondisi bersih dan penataan barang-barang rapi',
+                'Alegro dalam kondisi berfungsi normal, bersih dan penataan buah rapi',
+                'Freezer, under freezer, chiller, under chiller, salad case (gasket, kaca, rak, kipas, handle, body) juicer dan dapur dalam kondisi berfungsi normal, bersih, bunga es tidak tebal dan penataan bahan baku rapi',
+                'Chiller, salad case juicer dan dapur dalam kondisi normal dan bersih',
+                'Tempat prepare di area juicer dan dapur (food pan, kitchen set, termos nasi, keranjang, toples, box risol, box thawing) dalam kondisi tertutup dan dalam kondisi bersih',
+                'Tempat penyimpanan bahan baku & produk (rak susun, rak tempel dan lemari penyimpanan termasuk laci-laci) dalam kondisi bersih dan barang-barang tersusun rapi',
+                'Sink, grease trap, grease induk dan gutter dalam kondisi bersih',
+                'Langit-langit semua area dalam kondisi baik dan bersih',
+                'Tempat sampah semua area dalam kondisi bersih dan tidak ada bau tidak sedap',
+                'Dinding semua area dalam kondisi bersih',
+                'Mesin POS, alat pembayaran (EDC BCA, Mandiri, BRI, Gobiz, Grabfood, Handphone, HT dalam kondisi normal dan bersih',
+                'Setor omset maksimal jam 14.00 dan laporan setor omzet ke bagian keuangan',
+                'Kelengkapan peralatan kasir (kalkulator, money detector, stepless, isolatif) dalam kondisi cukup',
+                'Uang receh tersedia cukup (20rb, 10rb, 5rb, 2rb, 1rb, 500, 200, 100)',
+                'Peralatan proses cook (steamer nasi, rice cooker, gas cooker, steamer, magic com, microwave, toaster, panci, wajan, sodet, saringan mie, saringan minyak, jepitan makanan, deep fryer, teflon, cetakan nasi, kompor high, kompor low, pisau, talenan, parutan keju, timbangan) dalam kondisi layak pakai, bersih dan bebas dari kontaminasi antar alat, maupun dari  dari hal-hal lainnya',
+                'Hood dan exhaust dalam kondisi bersih dan berfungsi normal',
+                'Mesin cuci piring dan mesin pembuat es dalam kondisi bersih dan berfungsi normal',
+                'Semua area bebas dari hama(tikus, kecoa, lalat, semut)',
+                'Fasilitas toilet di dalam cabang',
+                'Handle pintu dan kunci pintu berfungsi normal dan bersih',
+                'Aroma toilet harum atau tidak berbau tidak sedap',
+                'Lantai dan dinding dalam kondisi bersih dan kering',
+                'Lampu penerangan tidak ada yang mati dan fan exhaust dengan kondisi bersih dan berfungsi normal',
+                'Kloset dalam kondisi baik,bersih dan kering',
+                'Shower kloset berfungsi normal dan bersih',
+                'Wastafel dalam kondisi normal dan bersih serta tersedia hand soap dan tissue',
+                'Urinoir dalam kondisi bersih, berfungsi normal dan tidak beraroma tidak sedap',
+                'Tempat Sampah dalam kondisi bersih tidak ada bau tidak sedap'
+            ];
+
+            function getJakartaHM() {
+                try {
+                    const parts = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Jakarta', hour12: false, hour: '2-digit', minute: '2-digit' }).formatToParts(new Date());
+                    const h = parseInt(parts.find(p=>p.type==='hour')?.value || '0', 10);
+                    const m = parseInt(parts.find(p=>p.type==='minute')?.value || '0', 10);
+                    return { h, m };
+                } catch (e) {
+                    const now = new Date();
+                    return { h: now.getHours(), m: now.getMinutes() };
+                }
+            }
+            function isWithinDuringWIB(){
+                const { h } = getJakartaHM();
+                return (h >= 15 && h < 18); // 15:00 - 17:59 WIB
+            }
+            function forceUpdateDuringMasterWithNewList(){
+                try {
+                    let items = [];
+                    try { items = JSON.parse(localStorage.getItem('checklistItems') || '[]'); } catch(e){ items = []; }
+                    const others = items.filter(i => i && i.waktu !== 'during');
+                    let idCounter = Date.now();
+                    const newDuring = DURING_LIST.map(n => ({ id: idCounter++, kategori: 'operasional', nama: n, waktu: 'during', status: 'aktif' }));
+                    const merged = [...others, ...newDuring];
+                    localStorage.setItem('checklistItems', JSON.stringify(merged));
+                    // Best-effort sync to cloud (only checklistItems)
+                    try {
+                        const baseUrl = (JSON.parse(localStorage.getItem('spreadsheetConfig')||'{}').webAppUrl || '').replace(/\/$/, '');
+                        if (baseUrl) {
+                            const dataStr = JSON.stringify(merged);
+                            const encData = encodeURIComponent(dataStr);
+                            if (encData.length > 1400) {
+                                getJSON(`${baseUrl}?action=sync&sheet=checklistItems&data=%5B%5D`).then(()=>{
+                                    newDuring.forEach(row => getJSON(`${baseUrl}?action=create&sheet=checklistItems&data=${encodeURIComponent(JSON.stringify(row))}`));
+                                });
+                            } else {
+                                getJSON(`${baseUrl}?action=sync&sheet=checklistItems&data=${encData}`);
+                            }
+                        }
+                    } catch(e){}
+                } catch(e){}
+            }
+            // Patch loadChecklist to enforce time gating for During
+            const __orig_loadChecklist_during = window.loadChecklist;
+            if (typeof __orig_loadChecklist_during === 'function') {
+                window.loadChecklist = function(){
+                    try {
+                        const sel = document.getElementById('checklistShift');
+                        if (sel) {
+                            const optDuring = Array.from(sel.options).find(o => (o.value||'') === 'during');
+                            const allow = isWithinDuringWIB();
+                            if (optDuring) { optDuring.disabled = !allow; optDuring.hidden = !allow; }
+                            if (!allow && sel.value === 'during') {
+                                if (Array.from(sel.options).some(o=>o.value==='pra')) sel.value = 'pra';
+                                else if (Array.from(sel.options).some(o=>o.value==='after')) sel.value = 'after';
+                            }
+                        }
+                    } catch(e){}
+                    return __orig_loadChecklist_during.apply(this, arguments);
+                };
+            }
+            // Refresh gating when entering checklist module
+            const __orig_showModule_during = window.showModule;
+            if (typeof __orig_showModule_during === 'function') {
+                window.showModule = function(module){
+                    const r = __orig_showModule_during.apply(this, arguments);
+                    if (module === 'checklist') {
+                        try {
+                            const sel = document.getElementById('checklistShift');
+                            if (sel) {
+                                const optDuring = Array.from(sel.options).find(o => (o.value||'') === 'during');
+                                const allow = isWithinDuringWIB();
+                                if (optDuring) { optDuring.disabled = !allow; optDuring.hidden = !allow; }
+                                if (!allow && sel.value === 'during') {
+                                    if (Array.from(sel.options).some(o=>o.value==='pra')) sel.value = 'pra';
+                                    else if (Array.from(sel.options).some(o=>o.value==='after')) sel.value = 'after';
+                                }
+                            }
+                        } catch(e){}
+                    }
+                    return r;
+                };
+            }
+            // Run once to ensure During list is updated
+            try { forceUpdateDuringMasterWithNewList(); } catch(e){}
+        })();
+
         // Initialize
+        // Admin override for Checklist time gating: allow all shifts anytime
+        (function(){
+            function isAdmin(){ try { return currentUser && currentUser.role === 'admin'; } catch(e){ return false; } }
+            function enableAllChecklistOptions(){
+                if (!isAdmin()) return;
+                try {
+                    const sel = document.getElementById('checklistShift');
+                    if (!sel) return;
+                    ['pra','during','after'].forEach(v => {
+                        const opt = Array.from(sel.options || []).find(o => (o.value||'') === v);
+                        if (opt){ opt.disabled = false; opt.hidden = false; }
+                    });
+                } catch(e){}
+            }
+            // Patch loadChecklist to always re-enable options for Admin
+            const __orig_loadChecklist = window.loadChecklist;
+            if (typeof __orig_loadChecklist === 'function'){
+                window.loadChecklist = function(){
+                    enableAllChecklistOptions();
+                    return __orig_loadChecklist.apply(this, arguments);
+                };
+            }
+            // Patch showModule to re-enable when entering checklist module
+            const __orig_showModule = window.showModule;
+            if (typeof __orig_showModule === 'function'){
+                window.showModule = function(module){
+                    const r = __orig_showModule.apply(this, arguments);
+                    if (module === 'checklist') enableAllChecklistOptions();
+                    return r;
+                };
+            }
+            // If time-gating helpers are exposed, bypass them for admin
+            if (typeof window.__pc_isWithinAfterClosingWIB === 'function'){
+                const _oldAfter = window.__pc_isWithinAfterClosingWIB;
+                window.__pc_isWithinAfterClosingWIB = function(){ return isAdmin() ? true : _oldAfter(); };
+            }
+            if (typeof window.__pc_isWithinDuringWIB === 'function'){
+                const _oldDuring = window.__pc_isWithinDuringWIB;
+                window.__pc_isWithinDuringWIB = function(){ return isAdmin() ? true : _oldDuring(); };
+            }
+            if (typeof window.__pc_isWithinPraOpeningWIB === 'function'){
+                const _oldPra = window.__pc_isWithinPraOpeningWIB;
+                window.__pc_isWithinPraOpeningWIB = function(){ return isAdmin() ? true : _oldPra(); };
+            }
+        })();
         init();
     </script>
 </body>
