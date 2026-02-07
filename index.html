@@ -349,69 +349,89 @@
                     </div>
                 </div>
 
-                <!-- Head Office Dashboard Extensions -->
+                <!-- Head Office / Area Manager Dashboard Extensions -->
                 <div id="hoDashboard" class="mt-8 hidden">
-                    <div class="mb-4">
-                        <h3 class="font-bold text-gray-800"><i class="fas fa-globe-asia text-indigo-500 mr-2"></i><span id="hoTitle">Ringkasan Multi-Outlet</span></h3>
+                    <div class="mb-4 flex items-center justify-between flex-wrap gap-3">
+                        <h3 class="font-bold text-gray-800 flex items-center"><i class="fas fa-globe-asia text-indigo-500 mr-2"></i><span id="hoTitle">Ringkasan Multi-Outlet</span></h3>
+                        <div class="flex items-center gap-2 text-sm text-gray-600">
+                            <span id="hoOutletScope" class="px-2 py-1 rounded bg-gray-100"></span>
+                            <button onclick="window.exportHoSummaryPDF && window.exportHoSummaryPDF()" class="px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm"><i class="fas fa-file-pdf mr-2"></i>Export Ringkasan PDF</button>
+                        </div>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                        <div class="bg-white rounded-xl p-6 shadow-sm card-hover transition-all">
+
+                    <!-- KPI Row -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+                        <!-- Tugas Selesai -->
+                        <div class="bg-white rounded-xl p-5 shadow-sm card-hover transition-all">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <p class="text-gray-500 text-sm">Tugas Selesai</p>
-                                    <p class="text-3xl font-bold text-gray-800" id="hoStatTugas">0/0</p>
+                                    <p class="text-gray-500 text-sm">Tugas Selesai (hari ini)</p>
+                                    <p class="text-3xl font-extrabold text-gray-800" id="hoStatTugas">0/0</p>
                                 </div>
-                                <div class="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center">
-                                    <i class="fas fa-tasks text-blue-600 text-2xl"></i>
+                                <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-tasks text-blue-600 text-xl"></i>
                                 </div>
                             </div>
-                            <div class="mt-4 h-2 bg-gray-200 rounded-full overflow-hidden">
-                                <div class="h-full bg-blue-500 rounded-full" id="hoProgressTugas" style="width: 0%"></div>
+                            <div class="mt-3 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                <div class="h-full bg-blue-500 rounded-full" id="hoProgressTugas" style="width:0%"></div>
                             </div>
                         </div>
-                        <div class="bg-white rounded-xl p-6 shadow-sm card-hover transition-all">
+                        <!-- Checklist Hari Ini -->
+                        <div class="bg-white rounded-xl p-5 shadow-sm card-hover transition-all">
                             <div class="flex items-center justify-between">
                                 <div>
                                     <p class="text-gray-500 text-sm">Checklist Hari Ini</p>
-                                    <p class="text-3xl font-bold text-gray-800" id="hoStatChecklist">0%</p>
+                                    <p class="text-3xl font-extrabold text-gray-800" id="hoStatChecklist">0%</p>
                                 </div>
-                                <div class="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center">
-                                    <i class="fas fa-clipboard-check text-green-600 text-2xl"></i>
+                                <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-clipboard-check text-green-600 text-xl"></i>
                                 </div>
                             </div>
-                            <div class="mt-4 h-2 bg-gray-200 rounded-full overflow-hidden">
-                                <div class="h-full bg-green-500 rounded-full" id="hoProgressChecklist" style="width: 0%"></div>
+                            <div class="mt-3 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                <div class="h-full bg-green-500 rounded-full" id="hoProgressChecklist" style="width:0%"></div>
                             </div>
                         </div>
-                        <div class="bg-white rounded-xl p-6 shadow-sm card-hover transition-all">
+                        <!-- Outlets Melapor -->
+                        <div class="bg-white rounded-xl p-5 shadow-sm card-hover transition-all">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <p class="text-gray-500 text-sm">Barang Reject</p>
-                                    <p class="text-3xl font-bold text-red-600" id="hoStatReject">0</p>
+                                    <p class="text-gray-500 text-sm">Outlets Melapor</p>
+                                    <p class="text-3xl font-extrabold text-gray-800"><span id="hoOutletsReporting">0</span>/<span id="hoOutletsTotal">0</span></p>
                                 </div>
-                                <div class="w-14 h-14 bg-red-100 rounded-xl flex items-center justify-center">
-                                    <i class="fas fa-times-circle text-red-600 text-2xl"></i>
+                                <div class="relative w-12 h-12">
+                                    <div id="hoCoverageRing" class="absolute inset-0 rounded-full" style="background:conic-gradient(#10b981 0%, #e5e7eb 0%);"></div>
+                                    <div class="absolute inset-1 rounded-full bg-white"></div>
                                 </div>
                             </div>
-                            <p class="mt-4 text-sm text-gray-500">Hari ini (semua outlet)</p>
                         </div>
-                        <div class="bg-white rounded-xl p-6 shadow-sm card-hover transition-all">
+                        <!-- Pending CAPA -->
+                        <div class="bg-white rounded-xl p-5 shadow-sm card-hover transition-all">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <p class="text-gray-500 text-sm">Rating Feedback</p>
-                                    <p class="text-3xl font-bold text-yellow-600" id="hoStatRating">0.0</p>
+                                    <p class="text-gray-500 text-sm">Pending CAPA</p>
+                                    <p class="text-3xl font-extrabold text-amber-600" id="hoCapaPending">0</p>
                                 </div>
-                                <div class="w-14 h-14 bg-yellow-100 rounded-xl flex items-center justify-center">
-                                    <i class="fas fa-star text-yellow-600 text-2xl"></i>
+                                <div class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-exclamation-circle text-amber-600 text-xl"></i>
                                 </div>
                             </div>
-                            <div class="mt-4 flex text-yellow-400" id="hoStarsRating">
-                                <i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i>
+                        </div>
+                        <!-- Alert Negatif -->
+                        <div class="bg-white rounded-xl p-5 shadow-sm card-hover transition-all">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-500 text-sm">Feedback Negatif (hari ini)</p>
+                                    <p class="text-3xl font-extrabold text-red-600" id="hoNegFeedback">0</p>
+                                </div>
+                                <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-comment-dots text-red-600 text-xl"></i>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Secondary Row: Ranking + Alerts -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                         <div class="bg-white rounded-xl p-6 shadow-sm">
                             <h3 class="font-bold text-gray-800 mb-4"><i class="fas fa-trophy text-yellow-500 mr-2"></i>Ranking Outlet</h3>
                             <div class="overflow-x-auto">
@@ -433,6 +453,28 @@
                             <div id="hoAlertsList" class="space-y-3">
                                 <p class="text-gray-500 text-center py-4">Tidak ada alert</p>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Coverage Table -->
+                    <div class="bg-white rounded-xl p-6 shadow-sm">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="font-bold text-gray-800"><i class="fas fa-table text-indigo-500 mr-2"></i>Cakupan & Status Outlet</h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Outlet</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Checklist</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Tugas (Selesai)</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Reject (Hari ini)</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Rating</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="hoCoverageBody" class="divide-y divide-gray-200"></tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -2795,17 +2837,25 @@
             hoWrapper.classList.remove('hidden');
 
             const outletsAll = JSON.parse(localStorage.getItem('outlets') || '[]');
-            // Limit to selectedOutlets (Admin/HO/AM). If none selected, use allowedOutlets
             const useIds = (selectedOutlets && selectedOutlets.length) ? selectedOutlets : (allowedOutlets || []);
             const outlets = outletsAll.filter(o => useIds.includes(o.id));
 
-            // Update title label
+            // Scope label
+            const scopeEl = document.getElementById('hoOutletScope');
+            if (scopeEl) {
+                if (outlets.length === 0) scopeEl.textContent = 'Tidak ada outlet dipilih';
+                else if (outlets.length === 1) scopeEl.textContent = outlets[0].nama;
+                else scopeEl.textContent = `${outlets.length} outlet dipilih`;
+            }
+
+            // Title label
             const titleEl = document.getElementById('hoTitle');
             if (titleEl) {
                 if (currentUser.role === 'head-office') titleEl.textContent = 'Ringkasan Multi-Outlet (Head Office)';
                 else if (currentUser.role === 'area-manager') titleEl.textContent = 'Ringkasan Multi-Outlet (Area Manager)';
                 else titleEl.textContent = 'Ringkasan Multi-Outlet';
             }
+
             const tugas = JSON.parse(localStorage.getItem('tugas') || '[]');
             const feedback = JSON.parse(localStorage.getItem('feedback') || '[]');
             const reject = JSON.parse(localStorage.getItem('reject') || '[]');
@@ -2819,13 +2869,13 @@
             const baseKeys = (outletId) => [`${todayKeyStr}_${outletId}_pra`, `${todayKeyStr}_${outletId}_during`, `${todayKeyStr}_${outletId}_after`];
             const totalChecklist = checklistItems.length;
 
-            // Aggregate tugas (hari ini)
-            const tugasToday = tugas.filter(t => t.tanggal === todayKeyStr);
+            // KPI: Tugas Hari Ini
+            const tugasToday = tugas.filter(t => useIds.includes(t.outlet) && t.tanggal === todayKeyStr);
             const tugasDone = tugasToday.filter(t => t.selesai).length;
             document.getElementById('hoStatTugas').textContent = `${tugasDone}/${tugasToday.length}`;
             document.getElementById('hoProgressTugas').style.width = tugasToday.length ? (tugasDone/tugasToday.length*100)+'%' : '0%';
 
-            // Aggregate checklist progress (count OK + not_ok with CAPA)
+            // KPI: Checklist Progress (OK + Not OK dgn CAPA)
             let counted = 0; let total = totalChecklist * (outlets.length || 1);
             outlets.forEach(o => {
                 baseKeys(o.id).forEach(k => {
@@ -2843,20 +2893,45 @@
             document.getElementById('hoStatChecklist').textContent = checklistPercent + '%';
             document.getElementById('hoProgressChecklist').style.width = checklistPercent + '%';
 
-            // Aggregate reject (hari ini)
-            const rejectToday = reject.filter(r => r.tanggal === todayKeyStr).length;
-            document.getElementById('hoStatReject').textContent = rejectToday;
+            // KPI: Outlets Melapor (punya aktivitas hari ini)
+            const reportingSet = new Set();
+            outlets.forEach(o => {
+                const hasTugas = tugasToday.some(t => t.outlet === o.id);
+                const hasReject = reject.some(r => r.outlet === o.id && r.tanggal === todayKeyStr);
+                const hasChecklist = baseKeys(o.id).some(k => Object.keys(statusMap[k]||{}).length > 0);
+                const hasFeedback = feedback.some(f => f.outlet === o.id && f.tanggal === todayKeyStr);
+                if (hasTugas || hasReject || hasChecklist || hasFeedback) reportingSet.add(o.id);
+            });
+            const cov = Math.round((reportingSet.size / (outlets.length || 1)) * 100);
+            const covRing = document.getElementById('hoCoverageRing');
+            if (covRing) covRing.style.background = `conic-gradient(#10b981 ${cov}%, #e5e7eb 0)`;
+            const covNum = document.getElementById('hoOutletsReporting');
+            const covTot = document.getElementById('hoOutletsTotal');
+            if (covNum) covNum.textContent = String(reportingSet.size);
+            if (covTot) covTot.textContent = String(outlets.length);
 
-            // Avg rating seluruh outlet
-            const avgRating = feedback.length ? (feedback.reduce((a,b) => a+b.rating, 0)/feedback.length).toFixed(1) : '0.0';
-            document.getElementById('hoStatRating').textContent = avgRating;
-            let starsHtml = '';
-            for (let i = 1; i <= 5; i++) starsHtml += `<i class="${i <= Math.round(avgRating) ? 'fas' : 'far'} fa-star"></i>`;
-            document.getElementById('hoStarsRating').innerHTML = starsHtml;
+            // KPI: Pending CAPA & Feedback negatif hari ini
+            let capaPending = 0; let negFb = 0;
+            outlets.forEach(o => {
+                baseKeys(o.id).forEach(k => {
+                    const obj = statusMap[k] || {}; const corr = correctiveMap[k] || {};
+                    Object.entries(obj).forEach(([id, val]) => {
+                        if (val === 'not_ok' && !(corr[id]||'').trim()) capaPending++;
+                    });
+                });
+                feedback.forEach(f => {
+                    if (f.outlet === o.id && f.tanggal === todayKeyStr) {
+                        if ((f.rating && f.rating <= 3) || f.kepuasan === 'tidak_puas') negFb++;
+                    }
+                });
+            });
+            const capaEl = document.getElementById('hoCapaPending');
+            if (capaEl) capaEl.textContent = String(capaPending);
+            const negFbEl = document.getElementById('hoNegFeedback');
+            if (negFbEl) negFbEl.textContent = String(negFb);
 
-            // Ranking Outlet (berdasar skor gabungan: checklist% 60%, rating 30%, reject -10 per item)
+            // Ranking Outlet (60% checklist, 30% rating, -10*reject)
             const outletScores = outlets.map(o => {
-                // checklist percent per outlet
                 let cCount = 0;
                 baseKeys(o.id).forEach(k => {
                     const obj = statusMap[k] || {}; const corr = correctiveMap[k] || {};
@@ -2866,10 +2941,8 @@
                     });
                 });
                 const cPct = totalChecklist ? (cCount/totalChecklist*100) : 0;
-                // rating per outlet
                 const fb = feedback.filter(f => f.outlet === o.id);
                 const rAvg = fb.length ? (fb.reduce((a,b)=>a+b.rating,0)/fb.length) : 0;
-                // reject today per outlet
                 const rj = reject.filter(r => r.outlet === o.id && r.tanggal === todayKeyStr).length;
                 const score = (0.6*cPct) + (0.3*rAvg*20) - (10*rj);
                 return { id: o.id, nama: o.nama, cPct: Math.round(cPct), rAvg: rAvg.toFixed(1), rj, score };
@@ -2885,9 +2958,8 @@
                 </tr>
             `).join('');
 
-            // Alerts: checklist 0% (belum diisi), stok expired, feedback negatif hari ini
+            // Alerts
             const alerts = [];
-            // checklist 0%
             outlets.forEach(o => {
                 let cCount = 0;
                 baseKeys(o.id).forEach(k => {
@@ -2899,29 +2971,93 @@
                 });
                 if (cCount === 0 && totalChecklist > 0) alerts.push({ type:'checklist', msg:`Checklist hari ini belum diisi di ${o.nama}` });
             });
-            // stok expired
             const nowLocal = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12,0,0,0);
             inventori.forEach(i => {
                 const exp = parseLocalDate(i.tglExpired);
-                if (exp && exp < nowLocal) alerts.push({ type: 'expired', msg:`Stok EXP: ${i.nama} (Outlet: ${ (outlets.find(o=>o.id===i.outlet)||{}).nama || i.outlet })`});
+                if (exp && exp < nowLocal && useIds.includes(i.outlet)) alerts.push({ type: 'expired', msg:`Stok EXP: ${i.nama} (Outlet: ${(outlets.find(o=>o.id===i.outlet)||{}).nama || i.outlet})`});
             });
-            // feedback negatif hari ini
             feedback.forEach(f => {
                 const neg = (f.rating && f.rating <= 3) || f.kepuasan === 'tidak_puas';
-                if (neg && f.tanggal === todayKeyStr) {
+                if (neg && f.tanggal === todayKeyStr && useIds.includes(f.outlet)) {
                     alerts.push({ type:'feedback', msg:`Feedback negatif di ${(outlets.find(o=>o.id===f.outlet)||{}).nama || f.outlet}` });
                 }
             });
-
             const alertWrap = document.getElementById('hoAlertsList');
-            alertWrap.innerHTML = alerts.length ? alerts.slice(0, 10).map(a => {
+            alertWrap.innerHTML = alerts.length ? alerts.slice(0, 12).map(a => {
                 const icon = a.type==='checklist' ? 'fa-clipboard-check text-orange-500' : a.type==='expired' ? 'fa-exclamation-triangle text-red-500' : 'fa-comment-dots text-pink-500';
                 const bg = a.type==='checklist' ? 'bg-orange-50 border-orange-200' : a.type==='expired' ? 'bg-red-50 border-red-200' : 'bg-pink-50 border-pink-200';
-                return `<div class="p-3 border ${bg} rounded-lg text-sm flex items-start gap-2">
-                    <i class="fas ${icon} mt-0.5"></i>
-                    <span class="text-gray-700">${a.msg}</span>
-                </div>`;
+                return `<div class="p-3 border ${bg} rounded-lg text-sm flex items-start gap-2"><i class="fas ${icon} mt-0.5"></i><span class="text-gray-700">${a.msg}</span></div>`;
             }).join('') : '<p class="text-gray-500 text-center py-4">Tidak ada alert</p>';
+
+            // Coverage table per outlet
+            const covBody = document.getElementById('hoCoverageBody');
+            if (covBody) {
+                covBody.innerHTML = outlets.map(o => {
+                    // checklist percent per outlet
+                    let cCount = 0;
+                    baseKeys(o.id).forEach(k => {
+                        const obj = statusMap[k] || {}; const corr = correctiveMap[k] || {};
+                        Object.entries(obj).forEach(([id, val]) => {
+                            if (val === 'ok') cCount++;
+                            else if (val === 'not_ok') { const tx = (corr[id]||'').trim(); if (tx) cCount++; }
+                        });
+                    });
+                    const cPct = totalChecklist ? Math.round(cCount/totalChecklist*100) : 0;
+                    const tDone = tugasToday.filter(t => t.outlet === o.id && t.selesai).length;
+                    const tTotal = tugasToday.filter(t => t.outlet === o.id).length;
+                    const rj = reject.filter(r => r.outlet === o.id && r.tanggal === todayKeyStr).length;
+                    const fb = feedback.filter(f => f.outlet === o.id);
+                    const rAvg = fb.length ? (fb.reduce((a,b)=>a+b.rating,0)/fb.length).toFixed(1) : '-';
+                    const status = cPct >= 80 && rj === 0 ? 'Sehat' : (cPct >= 50 ? 'Perlu Perhatian' : 'Kritis');
+                    const statusClass = status === 'Sehat' ? 'bg-green-100 text-green-700' : status === 'Perlu Perhatian' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700';
+                    return `<tr>
+                        <td class="px-4 py-2 text-sm text-gray-900">${o.nama}</td>
+                        <td class="px-4 py-2 text-sm text-gray-700">${cPct}%</td>
+                        <td class="px-4 py-2 text-sm text-gray-700">${tDone}/${tTotal}</td>
+                        <td class="px-4 py-2 text-sm text-red-600">${rj}</td>
+                        <td class="px-4 py-2 text-sm text-yellow-600">${rAvg}</td>
+                        <td class="px-4 py-2 text-xs"><span class="px-2 py-1 rounded ${statusClass}">${status}</span></td>
+                    </tr>`;
+                }).join('');
+            }
+
+            // Export PDF summary (attached on window for button access)
+            window.exportHoSummaryPDF = function() {
+                try {
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+                    const title = titleEl ? titleEl.textContent : 'Ringkasan Multi-Outlet';
+                    doc.setFontSize(14); doc.text(title, 40, 40);
+                    const scopeText = scopeEl ? scopeEl.textContent : '';
+                    doc.setFontSize(10); doc.text(`Cakupan: ${scopeText} | Tanggal: ${new Date().toLocaleDateString('id-ID')}`, 40, 58);
+
+                    // KPI table
+                    const kpiRows = [[
+                        document.getElementById('hoStatTugas')?.textContent || '-',
+                        document.getElementById('hoStatChecklist')?.textContent || '-',
+                        `${document.getElementById('hoOutletsReporting')?.textContent || '0'}/${document.getElementById('hoOutletsTotal')?.textContent || '0'}`,
+                        document.getElementById('hoCapaPending')?.textContent || '0',
+                        document.getElementById('hoNegFeedback')?.textContent || '0'
+                    ]];
+                    doc.autoTable({ startY: 74, head: [['Tugas Selesai', 'Checklist', 'Outlets Melapor', 'Pending CAPA', 'FB Negatif']], body: kpiRows, styles: { fontSize: 9 }, headStyles: { fillColor: [79,70,229] }});
+
+                    // Ranking table
+                    const rankBodyHtml = document.getElementById('hoRankingBody');
+                    if (rankBodyHtml) {
+                        const rows = Array.from(rankBodyHtml.querySelectorAll('tr')).map(tr => Array.from(tr.children).map(td => td.textContent.trim()));
+                        doc.autoTable({ startY: doc.lastAutoTable.finalY + 16, head: [['Outlet','Checklist','Reject (Hari ini)','Rating']], body: rows.slice(0,15), styles:{ fontSize: 8 }, headStyles:{ fillColor:[16,185,129] } });
+                    }
+
+                    // Coverage table
+                    const covHtml = document.getElementById('hoCoverageBody');
+                    if (covHtml) {
+                        const rows = Array.from(covHtml.querySelectorAll('tr')).map(tr => Array.from(tr.children).map(td => td.textContent.trim()));
+                        doc.autoTable({ startY: doc.lastAutoTable.finalY + 16, head: [['Outlet','Checklist','Tugas (Selesai)','Reject (Hari ini)','Rating','Status']], body: rows.slice(0, 20), styles:{ fontSize: 8 }, headStyles:{ fillColor:[59,130,246] } });
+                    }
+
+                    doc.save(`Ringkasan_Multi_Outlet_${toYMD(new Date())}.pdf`);
+                } catch (e) { console.error('Export HO summary failed:', e); }
+            }
         }
 
         // ==================== JADWAL KERJA ====================
@@ -3266,6 +3402,10 @@
             const tugas = JSON.parse(localStorage.getItem('tugas') || '[]');
             tugas[idx].selesai = !tugas[idx].selesai;
             localStorage.setItem('tugas', JSON.stringify(tugas));
+
+            // Sinkronkan perubahan ke Cloud agar kolom 'selesai' di Spreadsheet ikut terupdate
+            try { scheduleCloudSync(800); } catch (e) { /* ignore */ }
+
             loadTugas();
             loadDashboard();
         }
