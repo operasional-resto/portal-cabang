@@ -837,11 +837,11 @@
                     </div>
                     <div class="bg-white rounded-xl p-4 shadow-sm text-center">
                         <p class="text-3xl font-bold text-green-500" id="totalPositive">0</p>
-                        <p class="text-gray-500 text-sm">Feedback Positif (â˜…4-5/Puas)</p>
+                        <p class="text-gray-500 text-sm">Feedback Positif (★4-5/Puas)</p>
                     </div>
                     <div class="bg-white rounded-xl p-4 shadow-sm text-center">
                         <p class="text-3xl font-bold text-red-500" id="totalNegative">0</p>
-                        <p class="text-gray-500 text-sm">Feedback Negatif (â˜…1-3/Tidak Puas)</p>
+                        <p class="text-gray-500 text-sm">Feedback Negatif (★1-3/Tidak Puas)</p>
                     </div>
                     <div class="bg-white rounded-xl p-4 shadow-sm text-center">
                         <p class="text-3xl font-bold text-blue-500" id="totalFeedback">0</p>
@@ -879,9 +879,14 @@
             <section id="module-settings-checklist" class="module-section p-4 lg:p-8 fade-in">
                 <div class="flex items-center justify-between mb-6">
                     <h2 class="text-2xl font-bold text-gray-800">Pengaturan Checklist Operasional</h2>
-                    <button id="btnAddChecklist" onclick="openModal('modalChecklistSetting')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all">
-                        <i class="fas fa-plus mr-2"></i>Tambah Item
-                    </button>
+                    <div class="flex gap-2">
+                        <button id="btnResetChecklist" onclick="resetChecklistMaster()" class="bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700 transition-all">
+                            <i class="fas fa-undo mr-2"></i>Reset Master (Pra+During)
+                        </button>
+                        <button id="btnAddChecklist" onclick="openModal('modalChecklistSetting')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all">
+                            <i class="fas fa-plus mr-2"></i>Tambah Item
+                        </button>
+                    </div>
                 </div>
                 <div class="bg-white rounded-xl shadow-sm overflow-hidden">
                     <div class="overflow-x-auto">
@@ -3422,7 +3427,7 @@
             scheduleCloudSync();
             closeModal('modalTugas');
             loadTugas();
-            addActivity('tugas', 'Tugas baru: ' + judulVal + (assignVal ? ' â†’ ' + assignVal : ''));
+            addActivity('tugas', 'Tugas baru: ' + judulVal + (assignVal ? ' → ' + assignVal : ''));
             showToast('Tugas berhasil ditambahkan!');
             clearForm(['tugasDeskripsi']);
         }
@@ -4424,7 +4429,7 @@
             const rows = fb.slice().reverse().map(f => {
                 let ratingText = '';
                 if (f.sumber === 'google' && f.rating) {
-                    ratingText = 'â˜…'.repeat(f.rating) + 'â˜†'.repeat(5 - f.rating);
+                    ratingText = '★'.repeat(f.rating) + '☆'.repeat(5 - f.rating);
                 } else if (f.kepuasan) {
                     ratingText = f.kepuasan === 'puas' ? 'Puas' : 'Tidak Puas';
                 }
@@ -4540,7 +4545,7 @@
             
             // Validate CAPA for negative feedback (bintang 1-3 atau tidak puas)
             if (isNegative && !capa) {
-                showToast('CAPA wajib diisi untuk feedback negatif (â˜…1-3 atau Tidak Puas)');
+                showToast('CAPA wajib diisi untuk feedback negatif (★1-3 atau Tidak Puas)');
                 document.getElementById('fbCapa').focus();
                 return;
             }
@@ -4619,6 +4624,132 @@
             items.splice(idx, 1);
             localStorage.setItem('checklistItems', JSON.stringify(items));
             loadChecklistSettings();
+        }
+
+        function resetChecklistMaster() {
+            try {
+                const existing = JSON.parse(localStorage.getItem('checklistItems') || '[]');
+                const afterItems = existing.filter(i => i && i.waktu === 'after');
+                const custom = existing.filter(i => !i.waktu);
+                const praDuringList = [
+                    "Muka bersih tidak berminyak dan merias wajah sesuai standar",
+                    "Kulit tidak kering dan tidak bersisik memakai body lotion",
+                    "Kuku pendek dan tidak menggunakan cat kuku",
+                    "Bulu atau rambut hidung tidak menjorok keluar lubang hidung",
+                    "Tidak ada bau yang tidak sedap dari badan, mulut, telinga atau bagian tubuh lainnya termasuk parfume yang aromanya menyengat",
+                    "Mengenakan baju dan celana sesuai standar bentuk, warna bahan yang ditetapkan dalam kondisi bersih dan rapi",
+                    "Memakai sepatu pantofel warna hitam dengan maksimal tinggi 3 cm dalam kondisi bersih dan mengkilap (bersemir)",
+                    "Memakai ikat pinggang warna hitam polos terbuat dari kulit bukan kain atau sintetis dengan kepala gesper yang sederhana",
+                    "Memakai kaos singlet warna putih",
+                    "Tidak memakai gelang, anting, kalung, jam tangan atau aksesoris lainnya",
+                    "Tidak ada tato di bagian tubuh yang terbuka",
+                    "Pakai name tag sesuai standar yang ditetapkan",
+                    "Memakai masker hitam dan kelengkapan kerja sesuai jabatannya",
+                    "Rambut rapi dengan maksimal panjang 5 cm, tidak kusam/kering, rapi menggunakan minyak rambut yang tidak berbau menyengat",
+                    "Tidak memelihara kumis, jenggot dan jambang dipotong sejajar ekor mata",
+                    "Hijab dalam keadaan rapi, terutama pada bagian leher harus kelihatan bentuk leher dengan bantuan jepit/bros tanpa manik dan warna sesuai warna hijab",
+                    "Dilarang menggunakan jarum pentul",
+                    "Memakai dalaman hijab berwarna hitam polos",
+                    "Rambut panjang harus memakai hairnet dan poni tidak menjuntai ke depan menutupi dahi",
+                    "Order Barang sudah dicek kacab, diinput dan dikirim ke bagian gudang",
+                    "Labeling pada pada barang datang, hasil prepare dan atau hasil produksi sudah dilakukan",
+                    "Rekap Pemakaian sudah dikerjakan dan dikirim ke bagian akuntansi",
+                    "Pencatatan produksi cabang, produksi pusat sudah dikerjakan dan diverifikasi",
+                    "Laporan Piutang (Bagi cabang yang ada transaksi piutang) sudah dikerjakan dan atau dikirim ke bagian akuntansi",
+                    "Kesiapan Kelengkapan, Kebersihan, serta Kecukupan Sumber Daya (Area Dinning, Juicer, Kasir, Dapur)",
+                    "Sendok, garpu, pisau roti dan sumpit tersedia dalam kondisi cukup",
+                    "Tissue meja, saos, kecap, sambal dalam kondisi terisi cukup dan tidak belepotan",
+                    "Nampan, buku menu, slip order dan alat tulis tersedia dalam kondisi bersih dan cukup ",
+                    "Kain Lap Meja (waiter, juicer, kasir dan dapur) dalam kondisi bersih dan tidak ada bau tidak sedap",
+                    "Kain Lap Sendok, gelas dan piring dalam kondisi bersih dan tidak ada bau tidak sedap",
+                    "Hand sanitizer pada posisi pintu masuk & kasir",
+                    "Disinfektan tersedia dalam kondisi cukup",
+                    "Semua meja, kursi, sofa, kursi anak  dalam kondisi bersih dan tertata rapi",
+                    "Semua pegangan pintu, pegangan anak tangga, pembatas antrian dalam kondisi bersih",
+                    "Wastafel dalam kondisi bersih, tersedia hand soap, tissue, tempat sampah, cermin",
+                    "Tempat Sampah semua area dalam kondisi bersih dan tidak ada bau tidak sedap",
+                    "Pad counter dalam kondisi bersih dan barang-barang tertata rapi",
+                    "Semua Dinding (dining, juicer, kasir, dapur, gudang) dalam kondisi bersih",
+                    "Semua lantai (dinning, kasir, juicer, dapur, gudang) dan gotter dalam kondisi bersih",
+                    "Kaca (jendela, interior) dalam kondisi bersih tidak buram",
+                    "Diffuser AC / AC dalam kondisi bersih dan dingin",
+                    "TV display, Audio player dalam kondisi normal dan bersih",
+                    "Interior (gambar dinding, lampu gantung, furniture) dalam kondisi bersih",
+                    "Service Extension dalam kondisi rapi dan bersih",
+                    "Lampu (dining, box menu, Logo) dalam kondisi menyala normal dan bersih",
+                    "Tanaman Hias tidak ada yang layu daunnya",
+                    "Sarana Promosi (x banner, tripod banner, standing menu, baliho) dalam kondisi layak dan bersih",
+                    "Peralatan proses juicer (Blender, Juicer, extractor, sendok ukur, pisau, talenan, saringan juice, teh, scoop es krim, tea maker, mesin serut es, mesin cup sealer, es maker, timbangan) dalam kondisi berfungsi normal dan bersih",
+                    "Alat saji (Plate coupe 7.5, 8, 9, 10,5. Saucer 4,25. Bowl 4.5, 6, Bowl omega 7, square plate besar, kecil, piring snack, piring lauk, mangkok kuring/ramen, saucer, sendok, gelas juice, gelas teh, cangkir kopi, lunch box, box gurame, paper bowl set 650, 800, 1000, cup oval, cup 400, 500, sedotan) dalam kondisi cukup dan bersih",
+                    "Meja kerja di semua area dalam kondisi bersih dan penataan barang-barang rapi",
+                    "Alegro dalam kondisi berfungsi normal, bersih dan penataan buah rapi",
+                    "Freezer, under freezer, chiller, under chiller, salad case (gasket, kaca, rak, kipas, handle, body) juicer dan dapur dalam kondisi berfungsi normal, bersih, bunga es tidak tebal dan penataan bahan baku rapi",
+                    "Chiller, salad case juicer dan dapur dalam kondisi normal dan bersih",
+                    "Tempat prepare di area juicer dan dapur (food pan, kitchen set, termos nasi, keranjang, toples, box risol, box thawing) dalam kondisi tertutup dan dalam kondisi bersih",
+                    "Tempat penyimpanan bahan baku & produk (rak susun, rak tempel dan lemari penyimpanan termasuk laci-laci) dalam kondisi bersih dan barang-barang tersusun rapi",
+                    "Sink, grease trap, grease induk dan gutter dalam kondisi bersih",
+                    "Langit-langit semua area dalam kondisi baik dan bersih",
+                    "Tempat sampah semua area dalam kondisi bersih dan tidak ada bau tidak sedap",
+                    "Dinding semua area dalam kondisi bersih",
+                    "Mesin POS, alat pembayaran (EDC BCA, Mandiri, BRI, Gobiz, Grabfood, Handphone, HT dalam kondisi normal dan bersih",
+                    "Setor omset maksimal jam 14.00 dan laporan setor omzet ke bagian keuangan",
+                    "Kelengkapan peralatan kasir (kalkulator, money detector, stepless, isolatif) dalam kondisi cukup",
+                    "Uang receh tersedia cukup (20rb, 10rb, 5rb, 2rb, 1rb, 500, 200, 100)",
+                    "Peralatan proses cook (steamer nasi, rice cooker, gas cooker, steamer, magic com, microwave, toaster, panci, wajan, sodet, saringan mie, saringan minyak, jepitan makanan, deep fryer, teflon, cetakan nasi, kompor high, kompor low, pisau, talenan, parutan keju, timbangan) dalam kondisi layak pakai, bersih dan bebas dari kontaminasi antar alat, maupun dari  dari hal-hal lainnya",
+                    "Hood dan exhaust dalam kondisi bersih dan berfungsi normal",
+                    "Mesin cuci piring dan mesin pembuat es dalam kondisi bersih dan berfungsi normal",
+                    "Semua area bebas dari hama(tikus, kecoa, lalat, semut)",
+                    "Fasilitas toilet di dalam cabang",
+                    "Handle pintu dan kunci pintu berfungsi normal dan bersih",
+                    "Aroma toilet harum atau tidak berbau tidak sedap",
+                    "Lantai dan dinding dalam kondisi bersih dan kering",
+                    "Lampu penerangan tidak ada yang mati dan fan exhaust dengan kondisi bersih dan berfungsi normal",
+                    "Kloset dalam kondisi baik,bersih dan kering",
+                    "Shower kloset berfungsi normal dan bersih",
+                    "Wastafel dalam kondisi normal dan bersih serta tersedia hand soap dan tissue",
+                    "Urinoir dalam kondisi bersih, berfungsi normal dan tidak beraroma tidak sedap",
+                    "Tempat Sampah dalam kondisi bersih tidak ada bau tidak sedap"
+                ];
+                const baseItems = [];
+                let idCounter = Date.now();
+                praDuringList.forEach(n => baseItems.push({ id: idCounter++, kategori: 'operasional', nama: n, waktu: 'pra', status: 'aktif' }));
+                praDuringList.forEach(n => baseItems.push({ id: idCounter++, kategori: 'operasional', nama: n, waktu: 'during', status: 'aktif' }));
+                const newItems = [...baseItems, ...afterItems, ...custom];
+                localStorage.setItem('checklistItems', JSON.stringify(newItems));
+                localStorage.setItem('checklistV2', '1');
+
+                // Sync only checklistItems to Cloud (GET anti-CORS with fallback)
+                const baseUrl = getApiUrl();
+                if (baseUrl) {
+                    (async () => {
+                        try {
+                            const dataStr = JSON.stringify(newItems);
+                            const encoded = encodeURIComponent(dataStr);
+                            if (encoded.length > 1400) {
+                                await getJSON(`${baseUrl}?action=sync&sheet=checklistItems&data=%5B%5D`);
+                                for (let i = 0; i < newItems.length; i++) {
+                                    await getJSON(`${baseUrl}?action=create&sheet=checklistItems&data=${encodeURIComponent(JSON.stringify(newItems[i]))}`);
+                                }
+                            } else {
+                                await getJSON(`${baseUrl}?action=sync&sheet=checklistItems&data=${encoded}`);
+                            }
+                            console.log('✅ Master checklist tersinkron ke cloud:', newItems.length);
+                            if (currentModule === 'settings-checklist') loadChecklistSettings();
+                            showToast('Master checklist berhasil direset & disinkronkan');
+                        } catch (e) {
+                            console.warn('❌ Gagal sync master checklist:', e);
+                            if (currentModule === 'settings-checklist') loadChecklistSettings();
+                            showToast('Master checklist direset (local), sync gagal');
+                        }
+                    })();
+                } else {
+                    if (currentModule === 'settings-checklist') loadChecklistSettings();
+                    showToast('Master checklist direset (local).');
+                }
+            } catch (e) {
+                console.error(e);
+                showToast('Gagal reset master checklist');
+            }
         }
 
         // ==================== SETTINGS: OUTLET ====================
@@ -4845,9 +4976,9 @@
                 if (!obj.id) obj.id = `${sheetName}-${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
                 // GET anti-CORS create
                 await getJSON(`${baseUrl}?action=create&sheet=${encodeURIComponent(sheetName)}&data=${encodeURIComponent(JSON.stringify(obj))}`);
-                console.log(`âœ… Created 1 row to cloud [${sheetName}]`);
+                console.log(`✅ Created 1 row to cloud [${sheetName}]`);
             } catch (e) {
-                console.warn('âš ï¸ Create cloud failed', sheetName, e);
+                console.warn('⚠️ Create cloud failed', sheetName, e);
             }
         }
         function scheduleCloudSync(delay = 2000) {
@@ -4862,17 +4993,17 @@
             showToast('Menguji koneksi...');
             const result = await getJSON(`${baseUrl}?action=ping`);
             if (result.success && result.data === 'pong') {
-                showToast('âœ… Koneksi berhasil! Memulai sinkronisasi...');
+                showToast('✅ Koneksi berhasil! Memulai sinkronisasi...');
                 setTimeout(() => initialSyncToCloud(), 600);
             } else {
-                showToast('âŒ Koneksi gagal: ' + (result.error || 'Unknown error'));
+                showToast('❌ Koneksi gagal: ' + (result.error || 'Unknown error'));
             }
         }
         
         async function initialSyncToCloud() {
             const baseUrl = getApiUrl();
             if (!baseUrl) return;
-            showToast('ðŸ”„ Mengunggah data ke cloud...');
+            showToast('🔄 Mengunggah data ke cloud...');
 
             const sheets = [
                 { name: 'users', key: 'users' },
@@ -4916,23 +5047,23 @@
                             if (!cr.success) { errorCount++; console.error(`Create failed on ${sheet.name} idx ${i+1}`, cr.error); }
                         }
                         successCount++;
-                        console.log(`âœ… Synced ${sheet.name} (fallback create): ${dataWithIds.length}`);
+                        console.log(`✅ Synced ${sheet.name} (fallback create): ${dataWithIds.length}`);
                     } else {
                         // Single sync
                         const res = await getJSON(`${baseUrl}?action=sync&sheet=${encodeURIComponent(sheet.name)}&data=${encoded}`);
-                        if (res.success) { successCount++; console.log(`âœ… Synced ${sheet.name}: ${dataWithIds.length}`); }
-                        else { errorCount++; console.error(`âŒ Failed to sync ${sheet.name}:`, res.error); }
+                        if (res.success) { successCount++; console.log(`✅ Synced ${sheet.name}: ${dataWithIds.length}`); }
+                        else { errorCount++; console.error(`❌ Failed to sync ${sheet.name}:`, res.error); }
                     }
                 } catch (err) {
                     errorCount++;
-                    console.error(`âŒ Error syncing ${sheet.name}:`, err);
+                    console.error(`❌ Error syncing ${sheet.name}:`, err);
                 }
             }
 
             if (errorCount === 0) {
-                showToast(`âœ… Sinkronisasi selesai! ${successCount} sheet berhasil diupload`);
+                showToast(`✅ Sinkronisasi selesai! ${successCount} sheet berhasil diupload`);
             } else {
-                showToast(`âš ï¸ Sinkronisasi: ${successCount} berhasil, ${errorCount} gagal`);
+                showToast(`⚠️ Sinkronisasi: ${successCount} berhasil, ${errorCount} gagal`);
             }
         }
         
@@ -4992,7 +5123,7 @@
                 try {
                     let dataArr = null;
 
-                    // 1) JSONP (readp) â€“ cara utama anti-CORS
+                    // 1) JSONP (readp) – cara utama anti-CORS
                     const res = await jsonp(`${baseUrl}?action=readp&sheet=${encodeURIComponent(sheet.name)}`);
                     if (res && res.success && Array.isArray(res.data)) {
                         dataArr = res.data;
@@ -5014,7 +5145,7 @@
 
                         // 1) If cloud returns empty but we have local data, keep local (skip overwrite)
                         if ((dataArr.length === 0) && Array.isArray(prev) && prev.length > 0) {
-                            console.warn(`â­ï¸ Skip overwrite ${sheet.name}: remote empty, keep local ${prev.length}`);
+                            console.warn(`⏭️ Skip overwrite ${sheet.name}: remote empty, keep local ${prev.length}`);
                         } else {
                             // 2) If both sides have id and cloud has fewer items, merge by id to avoid data loss
                             const hasIdNew = dataArr.length && typeof dataArr[0] === 'object' && dataArr[0] && ('id' in dataArr[0]);
@@ -5024,21 +5155,21 @@
                                 dataArr.forEach(it => { if (it && it.id != null) map.set(it.id, it); });
                                 prev.forEach(it => { if (it && it.id != null && !map.has(it.id)) map.set(it.id, it); });
                                 saveArr = Array.from(map.values());
-                                console.log(`ðŸ”€ Merged ${sheet.name}: cloud ${dataArr.length} + kept ${saveArr.length - dataArr.length} = ${saveArr.length}`);
+                                console.log(`🔀 Merged ${sheet.name}: cloud ${dataArr.length} + kept ${saveArr.length - dataArr.length} = ${saveArr.length}`);
                             }
 
                             localStorage.setItem(sheet.key, JSON.stringify(saveArr));
                             successCount++;
-                            console.log(`âœ… Pulled ${sheet.name}: ${saveArr.length} items`);
+                            console.log(`✅ Pulled ${sheet.name}: ${saveArr.length} items`);
                         }
                     } else {
-                        console.warn(`âš ï¸ Gagal menarik sheet ${sheet.name} (data kosong atau error)`);
+                        console.warn(`⚠️ Gagal menarik sheet ${sheet.name} (data kosong atau error)`);
                     }
 
                     // Throttle untuk menghindari rate limit Apps Script / GViz
                     await new Promise(r => setTimeout(r, 200));
                 } catch (err) {
-                    console.error(`âŒ Error pulling ${sheet.name}:`, err);
+                    console.error(`❌ Error pulling ${sheet.name}:`, err);
                 }
             }
 
@@ -5064,7 +5195,7 @@
             window.__afterPullRenderTimer = setTimeout(() => {
                 // jangan tampilkan toast sukses agar UI bersih
                 // console.log digunakan sebagai log non-intrusif
-                console.log(`âœ… Data dari cloud berhasil diunduh! (${successCount} sheet)`);
+                console.log(`✅ Data dari cloud berhasil diunduh! (${successCount} sheet)`);
                 const activeModule = document.querySelector('.module-section.active');
                 if (activeModule) {
                     const moduleId = activeModule.id.replace('module-', '');
@@ -5080,7 +5211,7 @@
             pullDataFromCloud();
             // Saat kembali online
             window.addEventListener('online', () => {
-                console.log('ðŸŒ Online kembali - menarik data dari cloud');
+                console.log('🌐 Online kembali - menarik data dari cloud');
                 pullDataFromCloud();
             });
             // Saat tab menjadi aktif
@@ -5089,7 +5220,7 @@
                     const last = Number(localStorage.getItem('lastCloudPullAt') || '0');
                     // Pull ringan jika sudah > 15 detik sejak pull terakhir
                     if (Date.now() - last > 15000) {
-                        console.log('ðŸ‘€ Tab aktif - refresh data dari cloud');
+                        console.log('👀 Tab aktif - refresh data dari cloud');
                         pullDataFromCloud();
                     }
                 }
@@ -5097,7 +5228,7 @@
             // Tarik berkala tiap 30 detik agar lintas perangkat lebih segar
             if (window.__autoCloudTimer) clearInterval(window.__autoCloudTimer);
             window.__autoCloudTimer = setInterval(() => {
-                console.log('â±ï¸ Auto refresh cloud data (30s)');
+                console.log('⏱️ Auto refresh cloud data (30s)');
                 pullDataFromCloud();
             }, 30000);
         }
@@ -5137,7 +5268,7 @@
                     doc.setFontSize(13);
                     doc.text('Portal Cabang', marginX, headerY);
                     doc.setFontSize(11);
-                    const sub = `Checklist Operasional â€¢ ${labelWaktu}`;
+                    const sub = `Checklist Operasional • ${labelWaktu}`;
                     doc.text(sub, marginX, headerY + 16);
 
                     // Meta (right)
@@ -5330,10 +5461,10 @@
             const baseUrl = getApiUrl();
             const cfg = JSON.parse(localStorage.getItem('spreadsheetConfig') || '{}');
             const sid = cfg.spreadsheetId || DEFAULT_SPREADSHEET_ID;
-            console.group('ðŸ”Ž Diagnosa Cloud');
+            console.group('🔎 Diagnosa Cloud');
             if (!baseUrl) {
-                console.warn('âŒ Web App URL belum diisi');
-                showToast('âŒ Web App URL belum diisi. Buka Koneksi Spreadsheet.');
+                console.warn('❌ Web App URL belum diisi');
+                showToast('❌ Web App URL belum diisi. Buka Koneksi Spreadsheet.');
                 showCloudAlert();
                 console.groupEnd();
                 return;
@@ -5343,11 +5474,11 @@
             try {
                 const ping = await getJSON(`${baseUrl}?action=ping`);
                 if (ping && ping.success && ping.data === 'pong') {
-                    console.log('âœ… Ping Web App OK');
+                    console.log('✅ Ping Web App OK');
                 } else {
-                    console.warn('âš ï¸ Ping gagal:', ping && ping.error);
+                    console.warn('⚠️ Ping gagal:', ping && ping.error);
                 }
-            } catch (e) { console.warn('âš ï¸ Ping error:', e); }
+            } catch (e) { console.warn('⚠️ Ping error:', e); }
 
             // 2) JSONP readp test (anti-CORS)
             try {
@@ -5372,16 +5503,16 @@
                     });
                 })(`${baseUrl}?action=readp&sheet=users`);
                 if (res && res.success && Array.isArray(res.data)) {
-                    console.log(`âœ… JSONP readp users OK (${res.data.length} baris)`);
+                    console.log(`✅ JSONP readp users OK (${res.data.length} baris)`);
                 } else {
-                    console.warn('âš ï¸ JSONP readp users gagal. Pastikan Code.gs mendukung action=readp (JSONP).');
+                    console.warn('⚠️ JSONP readp users gagal. Pastikan Code.gs mendukung action=readp (JSONP).');
                 }
-            } catch(e){ console.warn('âš ï¸ JSONP error:', e); }
+            } catch(e){ console.warn('⚠️ JSONP error:', e); }
 
             // 3) GViz fallback test (Spreadsheet harus dapat diakses publik atau publish to web)
             try {
                 if (!sid) {
-                    console.warn('âš ï¸ Spreadsheet ID belum diisi, lewati GViz');
+                    console.warn('⚠️ Spreadsheet ID belum diisi, lewati GViz');
                 } else {
                     const url = `https://docs.google.com/spreadsheets/d/${sid}/gviz/tq?tqx=out:json&sheet=users`;
                     const resp = await fetch(url, { cache: 'no-store' });
@@ -5389,16 +5520,16 @@
                     const start = text.indexOf('{');
                     const end = text.lastIndexOf('}');
                     if (start !== -1 && end !== -1) {
-                        console.log('âœ… GViz akses Spreadsheet OK');
+                        console.log('✅ GViz akses Spreadsheet OK');
                     } else {
-                        console.warn('âš ï¸ GViz gagal parse. Pastikan Spreadsheet dibuka aksesnya (Anyone with link - Viewer) atau Publish to the web.');
+                        console.warn('⚠️ GViz gagal parse. Pastikan Spreadsheet dibuka aksesnya (Anyone with link - Viewer) atau Publish to the web.');
                     }
                 }
             } catch (e) {
-                console.warn('âš ï¸ GViz error:', e);
+                console.warn('⚠️ GViz error:', e);
             }
             console.groupEnd();
-            showToast('ðŸ”Ž Diagnosa selesai. Lihat Console untuk detail.');
+            showToast('🔎 Diagnosa selesai. Lihat Console untuk detail.');
         }
 
         // Initialize
