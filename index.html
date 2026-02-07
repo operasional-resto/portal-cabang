@@ -255,6 +255,13 @@
                                     <span class="text-sm font-semibold text-gray-700">Pilih Outlet</span>
                                     <button class="text-sm text-gray-500 hover:text-gray-700" onclick="toggleMultiOutletPanel()"><i class="fas fa-times"></i></button>
                                 </div>
+                                <!-- Search box -->
+                                <div class="mb-3">
+                                    <div class="relative">
+                                        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                                        <input id="multiOutletSearch" type="text" oninput="filterMultiOutletOptions()" placeholder="Cari outlet..." class="w-full pl-9 pr-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-300" />
+                                    </div>
+                                </div>
                                 <div class="flex items-center gap-2 mb-3">
                                     <button onclick="selectAllOutlets()" class="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 text-xs"><i class="fas fa-check-double mr-1"></i>Pilih Semua</button>
                                     <button onclick="deselectAllOutlets()" class="px-3 py-1.5 bg-gray-500 text-white rounded-lg hover:bg-gray-600 text-xs"><i class="fas fa-times mr-1"></i>Hapus Semua</button>
@@ -2370,7 +2377,8 @@
                     const list = outlets.filter(o => allowedOutlets.includes(o.id));
                     optionsBox.innerHTML = list.map(o => {
                         const checked = !selectedOutlets || selectedOutlets.includes(o.id) ? 'checked' : '';
-                        return `<label class="flex items-center gap-2 p-2 rounded hover:bg-gray-50">
+                        const dataName = (o.nama || '').toLowerCase();
+                        return `<label class="flex items-center gap-2 p-2 rounded hover:bg-gray-50" data-name="${dataName}">
                             <input type="checkbox" class="outlet-check" value="${o.id}" ${checked}>
                             <span class="text-sm text-gray-700 truncate">${o.nama}</span>
                         </label>`;
@@ -2471,6 +2479,15 @@
                 const moduleId = activeModule.id.replace('module-', '');
                 loadModuleData(moduleId);
             }
+        }
+
+        function filterMultiOutletOptions() {
+            const q = (document.getElementById('multiOutletSearch')?.value || '').toLowerCase().trim();
+            const items = document.querySelectorAll('#multiOutletOptions > label');
+            items.forEach(el => {
+                const n = el.getAttribute('data-name') || '';
+                el.style.display = !q || n.includes(q) ? '' : 'none';
+            });
         }
 
         function getRoleName(role) {
