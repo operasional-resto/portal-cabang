@@ -1651,13 +1651,13 @@
             } catch (e) { /* ignore */ }
         }
         function ensureChecklistSchemaV2() {
-            // Jika sudah pernah migrate, skip
+            // Jika sudah pernah migrate, skip (tetap izinkan overwrite bila belum ada properti waktu)
             const migrated = localStorage.getItem('checklistV2');
             let items = JSON.parse(localStorage.getItem('checklistItems') || '[]');
             if (migrated === '1' && items.some(i => i.waktu)) return;
 
-            // Dataset baru berdasarkan permintaan: pra + during (daftar yang sama), after (daftar berbeda)
-            const praDuringList = [
+            // Dataset baru: Pra Opening, During, dan After Closing sesuai permintaan
+            const praList = [
                 "Muka bersih tidak berminyak dan merias wajah sesuai standar",
                 "Kulit tidak kering dan tidak bersisik memakai body lotion",
                 "Kuku pendek dan tidak menggunakan cat kuku",
@@ -1679,15 +1679,15 @@
                 "Rambut panjang harus memakai hairnet dan poni tidak menjuntai ke depan menutupi dahi",
                 "Order Barang sudah dicek kacab, diinput dan dikirim ke bagian gudang",
                 "Labeling pada pada barang datang, hasil prepare dan atau hasil produksi sudah dilakukan",
-                "Rekap Pemakaian sudah dikerjakan dan dikirim ke bagian akuntansi",
+                "Rekap pemakaian sudah dikerjakan dan dikirim ke bagian akuntansi",
                 "Pencatatan produksi cabang, produksi pusat sudah dikerjakan dan diverifikasi",
                 "Laporan Piutang (Bagi cabang yang ada transaksi piutang) sudah dikerjakan dan atau dikirim ke bagian akuntansi",
-                "Kesiapan Kelengkapan, Kebersihan, serta Kecukupan Sumber Daya (Area Dinning, Juicer, Kasir, Dapur)",
+                "Kesiapan kelengkapan, kebersihan, serta kecukupan sumberdaya (Area Dinning, Juicer, Kasir, Dapur)",
                 "Sendok, garpu, pisau roti dan sumpit tersedia dalam kondisi cukup",
                 "Tissue meja, saos, kecap, sambal dalam kondisi terisi cukup dan tidak belepotan",
                 "Nampan, buku menu, slip order dan alat tulis tersedia dalam kondisi bersih dan cukup",
-                "Kain Lap Meja (waiter, juicer, kasir dan dapur) dalam kondisi bersih dan tidak ada bau tidak sedap",
-                "Kain Lap Sendok, gelas dan piring dalam kondisi bersih dan tidak ada bau tidak sedap",
+                "Kain lap meja (waiter, juicer, kasir dan dapur) dalam kondisi bersih dan tidak ada bau tidak sedap",
+                "Kain lap sendok, gelas dan piring dalam kondisi bersih dan tidak ada bau tidak sedap",
                 "Hand sanitizer pada posisi pintu masuk & kasir",
                 "Disinfektan tersedia dalam kondisi cukup",
                 "Semua meja, kursi, sofa, kursi anak  dalam kondisi bersih dan tertata rapi",
@@ -1736,9 +1736,90 @@
                 "Urinoir dalam kondisi bersih, berfungsi normal dan tidak beraroma tidak sedap",
                 "Tempat Sampah dalam kondisi bersih tidak ada bau tidak sedap"
             ];
+
+            const duringList = [
+                "Muka bersih tidak berminyak dan merias wajah sesuai standar",
+                "Kulit tidak kering dan tidak bersisik memakai body lotion",
+                "Kuku pendek dan tidak menggunakan cat kuku",
+                "Bulu atau rambut hidung tidak menjorok keluar lubang hidung",
+                "Tidak ada bau yang tidak sedap dari badan, mulut, telinga atau bagian tubuh lainnya termasuk parfume yang aromanya menyengat",
+                "Mengenakan baju dan celana sesuai standar bentuk, warna bahan yang ditetapkan dalam kondisi bersih dan rapi",
+                "Memakai sepatu pantofel warna hitam dengan maksimal tinggi 3 cm dalam kondisi bersih dan mengkilap (bersemir)",
+                "Memakai ikat pinggang warna hitam polos terbuat dari kulit bukan kain atau sintetis dengan kepala gesper yang sederhana",
+                "Memakai kaos singlet warna putih",
+                "Tidak memakai gelang, anting, kalung, jam tangan atau aksesoris lainnya",
+                "Tidak ada tato di bagian tubuh yang terbuka",
+                "Pakai name tag sesuai standar yang ditetapkan",
+                "Memakai masker hitam dan kelengkapan kerja sesuai jabatannya",
+                "Rambut rapi dengan maksimal panjang 5 cm, tidak kusam/kering, rapi menggunakan minyak rambut yang tidak berbau menyengat",
+                "Tidak memelihara kumis, jenggot dan jambang dipotong sejajar ekor mata",
+                "Hijab dalam keadaan rapi, terutama pada bagian leher harus kelihatan bentuk leher dengan bantuan jepit/bros tanpa manik dan warna sesuai warna hijab",
+                "Dilarang menggunakan jarum pentul",
+                "Memakai dalaman hijab berwarna hitam polos",
+                "Rambut panjang harus memakai hairnet dan poni tidak menjuntai ke depan menutupi dahi",
+                "Order Barang sudah dicek kacab, diinput dan dikirim ke bagian gudang",
+                "Labeling pada pada barang datang, hasil prepare dan atau hasil produksi sudah dilakukan",
+                "Rekap pemakaian sudah dikerjakan dan dikirim ke bagian akuntansi",
+                "Pencatatan produksi cabang, produksi pusat sudah dikerjakan dan diverifikasi",
+                "Laporan Piutang (Bagi cabang yang ada transaksi piutang) sudah dikerjakan dan atau dikirim ke bagian akuntansi",
+                "Kesiapan kelengkapan, kebersihan, serta kecukupan sumberdaya (Area Dinning, Juicer, Kasir, Dapur)",
+                "Sendok, garpu, pisau roti dan sumpit tersedia dalam kondisi cukup",
+                "Tissue meja, saos, kecap, sambal dalam kondisi terisi cukup dan tidak belepotan",
+                "Nampan, buku menu, slip order dan alat tulis tersedia dalam kondisi bersih dan cukup",
+                "Kain lap meja (waiter, juicer, kasir dan dapur) dalam kondisi bersih dan tidak ada bau tidak sedap",
+                "Kain lap sendok, gelas dan piring dalam kondisi bersih dan tidak ada bau tidak sedap",
+                "Hand sanitizer pada posisi pintu masuk & kasir",
+                "Disinfektan tersedia dalam kondisi cukup",
+                "Semua meja, kursi, sofa, kursi anak  dalam kondisi bersih dan tertata rapi",
+                "Semua pegangan pintu, pegangan anak tangga, pembatas antrian dalam kondisi bersih",
+                "Wastafel dalam kondisi bersih, tersedia hand soap, tissue, tempat sampah, cermin",
+                "Tempat Sampah semua area dalam kondisi bersih dan tidak ada bau tidak sedap",
+                "Pad counter dalam kondisi bersih dan barang-barang tertata rapi",
+                "Semua Dinding (dining, juicer, kasir, dapur, gudang) dalam kondisi bersih",
+                "Semua lantai (dining, kasir, juicer, dapur, gudang) dan gotter dalam kondisi bersih",
+                "Kaca (jendela, interior) dalam kondisi bersih tidak buram",
+                "Diffuser AC / AC dalam kondisi bersih dan dingin",
+                "TV display, Audio player dalam kondisi normal dan bersih",
+                "Interior (gambar dinding, lampu gantung, furniture) dalam kondisi bersih",
+                "Service Extension dalam kondisi rapi dan bersih",
+                "Lampu (dining, box menu, Logo) dalam kondisi menyala normal dan bersih",
+                "Tanaman Hias tidak ada yang layu daunnya",
+                "Sarana Promosi (x banner, tripod banner, standing menu, baliho) dalam kondisi layak dan bersih",
+                "Peralatan proses juicer (Blender, Juicer, extractor, sendok ukur, pisau, talenan, saringan juice, teh, scoop es krim, tea maker, mesin serut es, mesin cup sealer, es maker, timbangan) dalam kondisi berfungsi normal dan bersih",
+                "Alat saji (Plate coupe 7.5, 8, 9, 10,5. Saucer 4,25. Bowl 4.5, 6, Bowl omega 7, square plate besar, kecil, piring snack, piring lauk, mangkok kuring/ramen, saucer, sendok, gelas juice, gelas teh, cangkir kopi, lunch box, box gurame, paper bowl set 650, 800, 1000, cup oval, cup 400, 500, sedotan) dalam kondisi cukup dan bersih",
+                "Meja kerja di semua area dalam kondisi bersih dan penataan barang-barang rapi",
+                "Alegro dalam kondisi berfungsi normal, bersih dan penataan buah rapi",
+                "Freezer, under freezer, chiller, under chiller, salad case (gasket, kaca, rak, kipas, handle, body) juicer dan dapur dalam kondisi berfungsi normal, bersih, bunga es tidak tebal dan penataan bahan baku rapi",
+                "Chiller, salad case juicer dan dapur dalam kondisi normal dan bersih",
+                "Tempat prepare di area juicer dan dapur (food pan, kitchen set, termos nasi, keranjang, toples, box risol, box thawing) dalam kondisi tertutup dan dalam kondisi bersih",
+                "Tempat penyimpanan bahan baku & produk (rak susun, rak tempel dan lemari penyimpanan termasuk laci-laci) dalam kondisi bersih dan barang-barang tersusun rapi",
+                "Sink, grease trap, grease induk dan gutter dalam kondisi bersih",
+                "Langit-langit semua area dalam kondisi baik dan bersih",
+                "Tempat sampah semua area dalam kondisi bersih dan tidak ada bau tidak sedap",
+                "Dinding semua area dalam kondisi bersih",
+                "Mesin POS, alat pembayaran (EDC BCA, Mandiri, BRI, Gobiz, Grabfood, Handphone, HT dalam kondisi normal dan bersih",
+                "Setor omset maksimal jam 14.00 dan laporan setor omzet ke bagian keuangan",
+                "Kelengkapan peralatan kasir (kalkulator, money detector, stepless, isolatif) dalam kondisi cukup",
+                "Uang receh tersedia cukup (20rb, 10rb, 5rb, 2rb, 1rb, 500, 200, 100)",
+                "Peralatan proses cook (steamer nasi, rice cooker, gas cooker, steamer, magic com, microwave, toaster, panci, wajan, sodet, saringan mie, saringan minyak, jepitan makanan, deep fryer, teflon, cetakan nasi, kompor high, kompor low, pisau, talenan, parutan keju, timbangan) dalam kondisi layak pakai, bersih dan bebas dari kontaminasi antar alat, maupun dari  dari hal-hal lainnya",
+                "Hood dan exhaust dalam kondisi bersih dan berfungsi normal",
+                "Mesin cuci piring dan mesin pembuat es dalam kondisi bersih dan berfungsi normal",
+                "Semua area bebas dari hama(tikus, kecoa, lalat, semut)",
+                "Fasilitas toilet di dalam cabang",
+                "Handle pintu dan kunci pintu berfungsi normal dan bersih",
+                "Aroma toilet harum atau tidak berbau tidak sedap",
+                "Lantai dan dinding dalam kondisi bersih dan kering",
+                "Lampu penerangan tidak ada yang mati dan fan exhaust dengan kondisi bersih dan berfungsi normal",
+                "Kloset dalam kondisi baik,bersih dan kering",
+                "Shower kloset berfungsi normal dan bersih",
+                "Wastafel dalam kondisi normal dan bersih serta tersedia hand soap dan tissue",
+                "Urinoir dalam kondisi bersih, berfungsi normal dan tidak beraroma tidak sedap",
+                "Tempat Sampah dalam kondisi bersih tidak ada bau tidak sedap"
+            ];
+
             const afterList = [
                 "Permintaan barang ke gudang sudah di lakukan dan diverifikasi oleh kacab atau staff penggantinya",
-                "Labeling pada pada barang datang sudah dilakukan", 
+                "Labeling pada pada barang datang sudah dilakukan",
                 "Stock Opname sudah dilakukan dan diinput kedalam form rekapan pemakaian",
                 "Bahan baku sisa sudah masuk pendingin (bahan baku food & juice)",
                 "Semua peralatan saji dan kerja dalam kondisi bersih (dapur, juicer, kasir, dinning)",
@@ -1756,14 +1837,14 @@
                 "Semua pintu dan jendela dalam kondisi terkunci"
             ];
 
-            // Isi ulang items dengan dataset V2 (tanpa menghapus item kustom user)
+            // Bangun items baru
             const baseItems = [];
             let idCounter = 1000;
-            praDuringList.forEach(n => baseItems.push({ id: idCounter++, kategori: 'operasional', nama: n, waktu: 'pra', status: 'aktif' }));
-            praDuringList.forEach(n => baseItems.push({ id: idCounter++, kategori: 'operasional', nama: n, waktu: 'during', status: 'aktif' }));
+            praList.forEach(n => baseItems.push({ id: idCounter++, kategori: 'operasional', nama: n, waktu: 'pra', status: 'aktif' }));
+            duringList.forEach(n => baseItems.push({ id: idCounter++, kategori: 'operasional', nama: n, waktu: 'during', status: 'aktif' }));
             afterList.forEach(n => baseItems.push({ id: idCounter++, kategori: 'operasional', nama: n, waktu: 'after', status: 'aktif' }));
 
-            // Gabungkan: item kustom user tetap ada (yang tidak punya waktu akan diabaikan oleh filter baru)
+            // Gabungkan dengan item kustom (tanpa properti waktu)
             const custom = items.filter(i => !i.waktu);
             const merged = [...baseItems, ...custom];
             localStorage.setItem('checklistItems', JSON.stringify(merged));
