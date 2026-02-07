@@ -1857,6 +1857,8 @@
             mergeUserDatabase();
             cleanupDefaultOutlets();
             ensureChecklistSchemaV2();
+            // Remove duplicate outlets early
+            try { dedupeOutlets(); } catch(e) {}
 
             const savedUser = localStorage.getItem('currentUser');
             if (savedUser) {
@@ -2276,6 +2278,69 @@
                         }
                     }
                 } catch (e) { /* ignore */ }
+            }
+        }
+
+        // Deduplicate outlets by normalized name and fix user references
+        function dedupeOutlets() {
+            try {
+                let outlets = JSON.parse(localStorage.getItem('outlets') || '[]');
+                if (!Array.isArray(outlets) || outlets.length === 0) return false;
+                const normalize = (s) => (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ').trim();
+                const nameToKeepIdx = new Map();
+                const idMap = {};
+                outlets.forEach((o, idx) => {
+                    const key = normalize(o.nama);
+                    if (!key) return;
+                    if (!nameToKeepIdx.has(key)) {
+                        nameToKeepIdx.set(key, idx);
+                    } else {
+                        const keepIdx = nameToKeepIdx.get(key);
+                        const keep = outlets[keepIdx];
+                        const drop = o;
+                        if (keep && drop && drop.id && keep.id && drop.id !== keep.id) {
+                            idMap[drop.id] = keep.id;
+                        }
+                    }
+                });
+                const dupIds = Object.keys(idMap);
+                if (!dupIds.length) return false;
+
+                // Update users references
+                let users = [];
+                try { users = JSON.parse(localStorage.getItem('users') || '[]'); } catch(e) { users = []; }
+                if (Array.isArray(users)) {
+                    users.forEach(u => {
+                        if (!u) return;
+                        if (u.outlets === 'all') return;
+                        if (Array.isArray(u.outlets)) {
+                            u.outlets = Array.from(new Set(u.outlets.map(id => idMap[id] || id)));
+                        } else if (u.outlets) {
+                            u.outlets = idMap[u.outlets] || u.outlets;
+                        }
+                    });
+                    localStorage.setItem('users', JSON.stringify(users));
+                }
+
+                // Also fix selectedOutlets/currentOutlet/allowedOutlets in current session
+                if (currentUser) {
+                    if (Array.isArray(selectedOutlets)) {
+                        selectedOutlets = Array.from(new Set(selectedOutlets.map(id => idMap[id] || id)));
+                    }
+                    if (currentOutlet) currentOutlet = idMap[currentOutlet] || currentOutlet;
+                    if (Array.isArray(allowedOutlets)) {
+                        allowedOutlets = Array.from(new Set(allowedOutlets.map(id => idMap[id] || id)));
+                    }
+                }
+
+                // Remove duplicate outlets
+                const filtered = outlets.filter(o => !idMap[o.id]);
+                localStorage.setItem('outlets', JSON.stringify(filtered));
+                console.log(`🔧 Dedupe outlets: removed ${outlets.length - filtered.length} duplicates`);
+                return true;
+            } catch (e) {
+                console.warn('Dedupe outlets failed:', e);
+                return false;
             }
         }
 
@@ -3688,15 +3753,15 @@
                     </summary>
                     <div class="divide-y">
                         ${catItems.map(i => {
-                            const s = todayStatus[i.id] || '';
+                            const s = todayStatus[String(i.id)] || '';
                             const isNotOk = s === 'not_ok';
-                            const corr = todayCorrective[i.id] || '';
+                            const corr = todayCorrective[String(i.id)] || '';
                             return `
                             <div class="p-4 ${isNotOk ? 'bg-red-50' : ''}">
                                 <p class="${s ? (s === 'ok' ? 'text-gray-700' : 'text-red-700') : 'text-gray-700'}">${i.nama}</p>
                                 <div class="mt-3 ${isViewOnly ? 'pointer-events-none opacity-60' : ''}">
                                     <label class="block text-xs text-gray-500 mb-1">Status</label>
-                                    <select class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-300" ${isViewOnly ? 'disabled' : ''} onchange="onChecklistSelectChange(${i.id}, this.value)">
+                                    <select class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-300" ${isViewOnly ? 'disabled' : ''} onchange="onChecklistSelectChange('${i.id}', this.value)">
                                         <option value="" ${s ? '' : 'selected'}>Pilih status</option>
                                         <option value="ok" ${s==='ok' ? 'selected' : ''}>OK</option>
                                         <option value="not_ok" ${s==='not_ok' ? 'selected' : ''}>Tidak OK</option>
@@ -3717,6 +3782,8 @@
 
         function setChecklistStatus(id, status) {
             if (isViewOnly) return;
+            // Pastikan id adalah string agar konsisten sebagai key object
+            id = String(id);
             const waktu = document.getElementById('checklistShift').value;
             const today = toYMD(new Date());
             const todayKey = `${today}_${currentOutlet}_${waktu}`;
@@ -3762,11 +3829,12 @@
 
         function onChecklistSelectChange(id, value) {
             // value: '', 'ok', 'not_ok'
-            setChecklistStatus(id, value || '');
+            setChecklistStatus(String(id), value || '');
         }
 
         function saveCorrectiveAction(id, text) {
             if (isViewOnly) return;
+            id = String(id);
             const waktu = document.getElementById('checklistShift').value;
             const today = toYMD(new Date());
             const todayKey = `${today}_${currentOutlet}_${waktu}`;
@@ -4849,6 +4917,8 @@
 
         // ==================== SETTINGS: OUTLET ====================
         function loadOutlets() {
+            // Run dedupe to ensure no duplicates are shown
+            try { dedupeOutlets(); } catch(e) {}
             const outlets = JSON.parse(localStorage.getItem('outlets') || '[]');
             const container = document.getElementById('outletContainer');
             
@@ -4882,17 +4952,27 @@
 
         function saveOutlet() {
             const outlets = JSON.parse(localStorage.getItem('outlets') || '[]');
+            const namaBaru = (document.getElementById('outletNama').value || '').trim();
+            // Prevent duplicate by normalized name
+            const normalize = (s) => (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ').trim();
+            const exists = outlets.some(o => normalize(o.nama) === normalize(namaBaru));
+            if (exists) {
+                showToast('Nama outlet sudah ada. Gunakan nama lain.');
+                return;
+            }
             const newId = 'outlet-' + Date.now();
             outlets.push({
                 id: newId,
                 kode: document.getElementById('outletKode').value,
-                nama: document.getElementById('outletNama').value,
+                nama: namaBaru,
                 alamat: document.getElementById('outletAlamat').value,
                 telp: document.getElementById('outletTelp').value,
                 area: document.getElementById('outletArea').value,
                 status: 'aktif'
             });
             localStorage.setItem('outlets', JSON.stringify(outlets));
+            // Run dedupe after add just in case
+            try { dedupeOutlets(); } catch(e) {}
             closeModal('modalOutlet');
             loadOutlets();
             populateOutletSelector();
@@ -5271,6 +5351,8 @@
             // Setelah pull: merge ulang master (users/outlets dlsb) agar tidak hilang jika data cloud masih sedikit
             try {
                 mergeUserDatabase();
+                // Dedupe outlets again after cloud pull (in case cloud had duplicates)
+                try { dedupeOutlets(); } catch(e) {}
             } catch (e) { console.warn('Merge user database after cloud pull failed:', e); }
 
             // Simpan timestamp pull terakhir
@@ -6113,6 +6195,124 @@
                 window.__pc_isWithinPraOpeningWIB = function(){ return isAdmin() ? true : _oldPra(); };
             }
         })();
+
+        // ==================== PATCH: Robust Outlet Dedupe + Checklist Status Handlers ====================
+        (function(){
+            // Normalize name aggressively
+            function normName(s){
+                return (s||'').toString()
+                    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+                    .toLowerCase().replace(/[^a-z0-9\s]/g,' ')
+                    .replace(/\s+/g,' ').trim();
+            }
+            function fixSessionOutletRefs(idMap){
+                try{
+                    if (!idMap || !Object.keys(idMap).length) return;
+                    if (Array.isArray(selectedOutlets)) selectedOutlets = Array.from(new Set(selectedOutlets.map(id=>idMap[id]||id)));
+                    if (Array.isArray(allowedOutlets)) allowedOutlets = Array.from(new Set(allowedOutlets.map(id=>idMap[id]||id)));
+                    if (currentOutlet) currentOutlet = idMap[currentOutlet] || currentOutlet;
+                    try{ const cu = JSON.parse(localStorage.getItem('currentUser')||'null'); if(cu){ localStorage.setItem('currentUser', JSON.stringify({ ...cu, outlets: cu.outlets==='all'? 'all' : Array.isArray(cu.outlets) ? cu.outlets.map(id=>idMap[id]||id) : (idMap[cu.outlets]||cu.outlets) })); currentUser = JSON.parse(localStorage.getItem('currentUser')); } }catch(e){}
+                }catch(e){}
+            }
+            function writeFixedOutlets(newOutlets){ try{ localStorage.setItem('outlets', JSON.stringify(newOutlets)); }catch(e){} }
+
+            window.__fixDedupeOutlets = function(){
+                try{
+                    let outlets = [];
+                    try{ outlets = JSON.parse(localStorage.getItem('outlets')||'[]'); }catch(e){ outlets=[]; }
+                    if (!Array.isArray(outlets) || outlets.length<=1) return false;
+
+                    const keepIndexByName = new Map();
+                    const idMap = {}; // oldId -> keptId
+                    outlets.forEach((o,idx)=>{
+                        const key = normName(o && o.nama);
+                        if (!key) return;
+                        if (!keepIndexByName.has(key)){
+                            keepIndexByName.set(key, idx);
+                        }else{
+                            const keepIdx = keepIndexByName.get(key);
+                            const keep = outlets[keepIdx];
+                            const drop = o;
+                            if (keep && drop && keep.id && drop.id && keep.id!==drop.id){
+                                idMap[drop.id] = keep.id;
+                            }
+                        }
+                    });
+                    const dupIds = Object.keys(idMap);
+                    if (!dupIds.length) return false;
+
+                    // Fix users references
+                    let users = [];
+                    try{ users = JSON.parse(localStorage.getItem('users')||'[]'); }catch(e){ users=[]; }
+                    if (Array.isArray(users) && users.length){
+                        users.forEach(u=>{
+                            if (!u) return;
+                            if (u.outlets==='all') return;
+                            if (Array.isArray(u.outlets)){
+                                u.outlets = Array.from(new Set(u.outlets.map(id=>idMap[id]||id)));
+                            }else if (u.outlets){
+                                u.outlets = idMap[u.outlets] || u.outlets;
+                            }
+                        });
+                        try{ localStorage.setItem('users', JSON.stringify(users)); }catch(e){}
+                    }
+
+                    // Fix session refs
+                    fixSessionOutletRefs(idMap);
+
+                    // Remove duplicates
+                    const fixed = outlets.filter(o=> !idMap[o.id]);
+                    writeFixedOutlets(fixed);
+
+                    // Refresh UI selectors if available
+                    try{ if (typeof populateOutletSelector==='function') populateOutletSelector(); }catch(e){}
+                    // If currently in settings-outlet, reload
+                    try{
+                        const active = document.querySelector('.module-section.active');
+                        if (active && active.id==='module-settings-outlet' && typeof loadOutlets==='function') loadOutlets();
+                    }catch(e){}
+                    console.log(`🔧 Dedupe outlets: removed ${outlets.length-fixed.length} duplicates`);
+                    return true;
+                }catch(e){ console.warn('Dedupe outlets patch failed:', e); return false; }
+            };
+
+            // Patch pullDataFromCloud to run dedupe afterwards
+            if (typeof window.pullDataFromCloud==='function'){
+                const _oldPull = window.pullDataFromCloud;
+                window.pullDataFromCloud = async function(){
+                    const r = await _oldPull.apply(this, arguments);
+                    try{ window.__fixDedupeOutlets(); }catch(e){}
+                    return r;
+                };
+            }
+            // Run once after init to clean any local duplicates
+            setTimeout(()=>{ try{ window.__fixDedupeOutlets(); }catch(e){} }, 1200);
+
+            // Robust checklist handlers (force id as string)
+            const _oldSet = window.setChecklistStatus;
+            window.setChecklistStatus = function(id, status){
+                try{
+                    id = String(id);
+                    if (typeof _oldSet === 'function') return _oldSet.call(this, id, status);
+                }catch(e){}
+                // Fallback minimal handler if original missing
+                try{
+                    const waktu = document.getElementById('checklistShift').value;
+                    const today = (function(d){ const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), dd=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${dd}`; })(new Date());
+                    const key = `${today}_${currentOutlet}_${waktu}`;
+                    const map = JSON.parse(localStorage.getItem('checklistStatus')||'{}');
+                    map[key] = map[key] || {};
+                    if (!status) delete map[key][id]; else map[key][id]=status;
+                    localStorage.setItem('checklistStatus', JSON.stringify(map));
+                    try{ createSingleToCloud && createSingleToCloud('checklistStatus', { id:key, key, data: map[key] }); }catch(e){}
+                }catch(e){ console.warn('Fallback setChecklistStatus failed', e); }
+            };
+            window.onChecklistSelectChange = function(id, value){ try{ window.setChecklistStatus(String(id), value||''); }catch(e){ console.warn(e); } };
+            const _oldSaveCorr = window.saveCorrectiveAction;
+            window.saveCorrectiveAction = function(id, text){ try{ return _oldSaveCorr.call(this, String(id), text); }catch(e){
+                try{ id=String(id); const waktu=document.getElementById('checklistShift').value; const today=(function(d){ const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), dd=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${dd}`; })(new Date()); const key=`${today}_${currentOutlet}_${waktu}`; const corr=JSON.parse(localStorage.getItem('checklistCorrective')||'{}'); corr[key]=corr[key]||{}; corr[key][id]=(text||'').trim(); localStorage.setItem('checklistCorrective', JSON.stringify(corr)); try{ createSingleToCloud && createSingleToCloud('checklistCorrective', { id:key, key, data:corr[key] }); }catch(_){} }catch(_e){ console.warn('Fallback saveCorrectiveAction failed', _e); } };
+        })();
+
         init();
     </script>
 </body>
