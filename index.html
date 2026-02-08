@@ -2364,43 +2364,63 @@
         }
 
         function login() {
-            const role = document.getElementById('loginRole').value;
-            const code = document.getElementById('loginCode').value.trim();
+            const role = (document.getElementById('loginRole').value || '').trim();
+            const code = (document.getElementById('loginCode').value || '').trim();
             const errorDiv = document.getElementById('loginError');
             const errorText = document.getElementById('errorText');
-            
-            if (!role) {
+
+            function showErr(msg){
                 errorDiv.classList.remove('hidden');
-                errorText.textContent = 'Silakan pilih role terlebih dahulu';
-                return;
+                errorText.textContent = msg;
             }
-            
-            if (!code) {
-                errorDiv.classList.remove('hidden');
-                errorText.textContent = 'Silakan masukkan kode akses';
-                return;
+
+            if (!role) return showErr('Silakan pilih role terlebih dahulu');
+            if (!code) return showErr('Silakan masukkan kode akses');
+
+            const roleNorm = role; // nilai di <select> sudah format mesin (admin, head-office, area-manager, kepala-cabang, outlet)
+
+            function findUserByRoleAndCode(list){
+                try {
+                    return (list || []).find(u => u && String(u.kode).trim() === code && String(u.role).trim() === roleNorm);
+                } catch(e){ return null; }
             }
-            
-            // Find user in database
-            const users = JSON.parse(localStorage.getItem('users') || '[]');
-            const user = users.find(u => u.kode === code && u.role === role);
-            
+
+            // 1) Cari di localStorage saat ini
+            let users = [];
+            try { users = JSON.parse(localStorage.getItem('users') || '[]'); } catch(e){ users = []; }
+            let user = findUserByRoleAndCode(users);
+
+            // 2) Jika tidak ada, merge user master bawaan lalu coba lagi
             if (!user) {
-                errorDiv.classList.remove('hidden');
-                errorText.textContent = 'Kode akses tidak valid untuk role ' + getRoleName(role);
-                return;
+                try { mergeUserDatabase && mergeUserDatabase(); } catch(e) {}
+                try { users = JSON.parse(localStorage.getItem('users') || '[]'); } catch(e){ users = []; }
+                user = findUserByRoleAndCode(users);
             }
-            
-            // Set current user
-            currentUser = {
-                kode: user.kode,
-                nama: user.nama,
-                role: user.role,
-                outlets: user.outlets
-            };
-            
-            localStorage.setItem('currentUser', JSON.stringify(currentUser));
-            setupUserSession();
+
+            // 3) Jika masih tidak ada, fallback ke daftar bawaan di userDatabase sesuai role
+            if (!user) {
+                try {
+                    const fallbackList = (userDatabase && userDatabase[roleNorm]) ? userDatabase[roleNorm] : [];
+                    const fb = (fallbackList || []).find(u => u && String(u.kode).trim() === code);
+                    if (fb) {
+                        user = { kode: fb.kode, nama: fb.nama, role: roleNorm, outlets: fb.outlets || (roleNorm==='head-office' || roleNorm==='admin' ? 'all' : []) , status: 'aktif' };
+                        // Simpan ke local agar sesi berikutnya langsung ada
+                        users.push(user);
+                        try { localStorage.setItem('users', JSON.stringify(users)); } catch(e) {}
+                    }
+                } catch(e) {}
+            }
+
+            if (!user) {
+                return showErr('Kode akses tidak valid untuk role ' + getRoleName(roleNorm));
+            }
+
+            // Set current user & lanjutkan
+            currentUser = { kode: user.kode, nama: user.nama, role: user.role, outlets: user.outlets };
+            try { localStorage.setItem('currentUser', JSON.stringify(currentUser)); } catch(e){}
+
+            // Pastikan sesi disiapkan dan app ditampilkan
+            try { setupUserSession && setupUserSession(); } catch(e){}
             showMainApp();
         }
 
@@ -6313,7 +6333,432 @@
                 try{ id=String(id); const waktu=document.getElementById('checklistShift').value; const today=(function(d){ const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), dd=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${dd}`; })(new Date()); const key=`${today}_${currentOutlet}_${waktu}`; const corr=JSON.parse(localStorage.getItem('checklistCorrective')||'{}'); corr[key]=corr[key]||{}; corr[key][id]=(text||'').trim(); localStorage.setItem('checklistCorrective', JSON.stringify(corr)); try{ createSingleToCloud && createSingleToCloud('checklistCorrective', { id:key, key, data:corr[key] }); }catch(_){} }catch(_e){ console.warn('Fallback saveCorrectiveAction failed', _e); } };
         })();
 
+        // === Robust Login Override v2: tolerant, role-agnostic by code, auto-merge, defensive against corrupted storage ===
+        (function(){
+            function normRole(r){ return (r||'').toString().trim().toLowerCase().replace(/[\s_]+/g,'-'); }
+            function normCode(c){ return (c||'').toString().trim().toLowerCase(); }
+            function safeParseLS(key, fallback){ try{ const v = localStorage.getItem(key); if(!v) return fallback; const p = JSON.parse(v); return p==null? fallback : p; }catch(e){ console.warn('LS parse fail for', key, e); return fallback; } }
+            function setLS(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){ console.warn('LS set fail', key, e); } }
+
+            function flattenBuiltinUsers(){
+                const arr = [];
+                try{ const db = window.userDatabase||{}; Object.keys(db).forEach(role=>{ (db[role]||[]).forEach(u=>{ if(u&&u.kode){ arr.push({ kode:String(u.kode), nama:u.nama||'User', role:role, outlets:u.outlets|| (role==='admin'||role==='head-office' ? 'all' : []), status:'aktif' }); } }); }); }catch(e){}
+                return arr;
+            }
+            function buildIndexByCode(){
+                const map = new Map();
+                const localUsers = safeParseLS('users',[]);
+                localUsers.forEach(u=>{ if(u&&u.kode){ map.set(normCode(u.kode), u); } });
+                const builtin = flattenBuiltinUsers();
+                builtin.forEach(u=>{ const k = normCode(u.kode); if(!map.has(k)) map.set(k, u); });
+                return map;
+            }
+
+            window.login = function(){
+                const roleSel = document.getElementById('loginRole');
+                const codeEl  = document.getElementById('loginCode');
+                const errorDiv = document.getElementById('loginError');
+                const errorText = document.getElementById('errorText');
+                function showErr(msg){ if(errorDiv){ errorDiv.classList.remove('hidden'); errorText.textContent = msg; } console.warn('Login warn:', msg); }
+                function hideErr(){ if(errorDiv){ errorDiv.classList.add('hidden'); } }
+
+                const selRoleRaw = (roleSel?.value||'');
+                const codeRaw = (codeEl?.value||'');
+                const selRole = normRole(selRoleRaw);
+                const codeNorm = normCode(codeRaw);
+                if (!selRole) return showErr('Silakan pilih role terlebih dahulu');
+                if (!codeNorm) return showErr('Silakan masukkan kode akses');
+
+                hideErr();
+
+                // Pastikan master user dimerge terlebih dahulu
+                try{ window.mergeUserDatabase && window.mergeUserDatabase(); }catch(e){ console.warn('mergeUserDatabase error', e); }
+
+                // Bangun index gabungan (local + builtin)
+                const idx = buildIndexByCode();
+                let user = idx.get(codeNorm) || null;
+
+                // Jika belum ketemu, coba pull ringan dari cloud (users saja), lalu rebuild index
+                if (!user) {
+                    try {
+                        if (typeof window.pullDataFromCloud==='function') {
+                            // tarik hanya users via JSONP ringan bila tersedia
+                            // namun tidak blok UI; kita lanjut tanpa await
+                            window.pullDataFromCloud();
+                        }
+                    } catch(e){}
+                    // rebuild index setelah (mungkin) merge user lagi
+                    try{ window.mergeUserDatabase && window.mergeUserDatabase(); }catch(e){}
+                    const idx2 = buildIndexByCode();
+                    user = idx2.get(codeNorm) || null;
+                }
+
+                if (!user){
+                    return showErr('Kode akses tidak ditemukan. Hubungi Admin.');
+                }
+
+                // Jika role yang dipilih berbeda dengan role di data user, tetap pakai role dari data user agar konsisten
+                const effRole = normRole(user.role||selRoleRaw);
+                if (!effRole) return showErr('Role pengguna tidak valid');
+
+                if (String(user.status||'aktif').toLowerCase()!=='aktif'){
+                    return showErr('Akun dinonaktifkan. Hubungi Admin.');
+                }
+
+                // Siapkan outlets
+                let outlets = user.outlets;
+                if (!outlets) {
+                    if (effRole==='admin' || effRole==='head-office') outlets='all';
+                    else outlets = [];
+                }
+
+                const current = { kode: String(user.kode), nama: user.nama||'User', role: effRole, outlets: outlets };
+                setLS('currentUser', current);
+
+                try { window.setupUserSession && window.setupUserSession(); } catch(e){ console.error('setupUserSession error', e); }
+                try { window.showMainApp && window.showMainApp(); } catch(e){ console.error('showMainApp error', e); }
+            };
+        })();
+
         init();
+
+        // ==== Robust Login Override v3: kode akses case-insensitive, merge bawaan, tidak bergantung cloud ====
+        (function(){
+            function normCode(c){ return (c||'').toString().trim().toLowerCase(); }
+            function showErr(msg){
+                try{
+                    const eDiv = document.getElementById('loginError');
+                    const eTxt = document.getElementById('errorText');
+                    if (eDiv && eTxt){ eDiv.classList.remove('hidden'); eTxt.textContent = msg; }
+                }catch(e){}
+            }
+            function getUsersLS(){ try{ const v = JSON.parse(localStorage.getItem('users')||'[]'); return Array.isArray(v)? v : []; }catch(e){ return []; } }
+            function setUsersLS(arr){ try{ localStorage.setItem('users', JSON.stringify(arr||[])); }catch(e){} }
+            function buildBuiltinIndex(){
+                const idx = new Map();
+                try{
+                    const db = window.userDatabase || {};
+                    Object.keys(db).forEach(role => {
+                        (db[role]||[]).forEach(u => {
+                            if (!u || !u.kode) return;
+                            const key = normCode(u.kode);
+                            if (!idx.has(key)) idx.set(key, { kode:String(u.kode), nama:u.nama||'User', role, outlets:u.outlets|| (role==='admin'||role==='head-office' ? 'all' : []), status:'aktif' });
+                        });
+                    });
+                }catch(e){}
+                return idx;
+            }
+            window.login = function(){
+                try{
+                    // Ambil input
+                    const roleSelRaw = (document.getElementById('loginRole')?.value||'').toString().trim().toLowerCase();
+                    const codeRaw = (document.getElementById('loginCode')?.value||'').toString();
+                    const codeKey = normCode(codeRaw);
+                    if (!roleSelRaw){ showErr('Silakan pilih role terlebih dahulu'); return; }
+                    if (!codeKey){ showErr('Silakan masukkan kode akses'); return; }
+
+                    // Pastikan master user dimerge dan outlet dibersihkan
+                    try{ window.mergeUserDatabase && window.mergeUserDatabase(); }catch(e){}
+                    try{ window.dedupeOutlets && window.dedupeOutlets(); }catch(e){}
+
+                    // Bangun index gabungan: local + builtin
+                    let users = getUsersLS();
+                    const localIdx = new Map();
+                    users.forEach(u => { if(u&&u.kode){ localIdx.set(normCode(u.kode), u); } });
+                    const builtinIdx = buildBuiltinIndex();
+
+                    // Cari user berdasarkan kode di local dulu, lalu builtin
+                    let user = localIdx.get(codeKey) || builtinIdx.get(codeKey) || null;
+
+                    // Jika ketemu di builtin tapi belum ada di local, tambahkan ke local agar persist
+                    if (user && !localIdx.get(codeKey)){
+                        users.push({ kode:user.kode, nama:user.nama, role:user.role, outlets:user.outlets, status:user.status||'aktif' });
+                        setUsersLS(users);
+                    }
+
+                    if (!user){
+                        showErr('Kode akses tidak ditemukan. Hubungi Admin.');
+                        return;
+                    }
+                    if ((user.status||'aktif').toString().toLowerCase() !== 'aktif'){
+                        showErr('Akun dinonaktifkan. Hubungi Admin.');
+                        return;
+                    }
+
+                    // Siapkan allowed outlets
+                    let outletsAll = [];
+                    try{ outletsAll = JSON.parse(localStorage.getItem('outlets')||'[]'); }catch(e){ outletsAll=[]; }
+                    const allIds = Array.isArray(outletsAll)? outletsAll.map(o=>o.id).filter(Boolean) : [];
+                    let allowed = [];
+                    if (user.outlets==='all' || user.role==='admin' || user.role==='head-office'){
+                        allowed = allIds.slice();
+                    } else if (Array.isArray(user.outlets)){
+                        allowed = user.outlets.filter(id => allIds.includes(id));
+                    } else if (user.outlets){
+                        allowed = allIds.includes(user.outlets)? [user.outlets] : [];
+                    }
+                    if (allowed.length===0 && allIds.length){ allowed = allIds.slice(); }
+
+                    // Tetapkan currentUser (role mengikuti data user agar konsisten)
+                    const cu = { kode: user.kode, nama: user.nama||'User', role: (user.role||roleSelRaw), outlets: (user.outlets!==undefined? user.outlets : (['admin','head-office'].includes(user.role)? 'all' : allowed)) };
+                    try{ localStorage.setItem('currentUser', JSON.stringify(cu)); }catch(e){}
+                    window.currentUser = cu;
+
+                    // Lanjutkan sesi
+                    try{ window.setupUserSession && window.setupUserSession(); }catch(e){}
+                    try{ window.showMainApp && window.showMainApp(); }catch(e){}
+                }catch(err){
+                    console.warn('Login fatal error:', err);
+                    showErr('Terjadi kesalahan saat login. Muat ulang lalu coba lagi.');
+                }
+            };
+        })();
+        // === FINAL OVERRIDE: Ultra-robust login (code-only, case-insensitive, role-agnostic) ===
+        (function(){
+            function safeParse(key, fallback){
+                try{ const v = localStorage.getItem(key); if(!v) return fallback; const p = JSON.parse(v); return (p==null? fallback : p); }catch(e){ return fallback; }
+            }
+            function setLS(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){} }
+            function flattenBuiltin(){
+                const arr=[]; try{ const db = window.userDatabase||{}; Object.keys(db).forEach(role=>{ (db[role]||[]).forEach(u=>{ if(u&&u.kode){ arr.push({ kode:String(u.kode), nama:u.nama||'User', role, outlets:(u.outlets!=null? u.outlets : (role==='admin'||role==='head-office' ? 'all' : [])), status:'aktif' }); } }); }); }catch(e){}
+                return arr;
+            }
+            function buildIndex(){
+                const idx = new Map();
+                const ls = safeParse('users',[]);
+                ls.forEach(u=>{ if(u&&u.kode){ idx.set(String(u.kode).toLowerCase().trim(), u); } });
+                const builtin = flattenBuiltin();
+                builtin.forEach(u=>{ const k=String(u.kode).toLowerCase().trim(); if(!idx.has(k)) idx.set(k, u); });
+                return { idx, ls };
+            }
+            window.login = function(){
+                try{
+                    const roleSel = (document.getElementById('loginRole')?.value||'').toString().trim().toLowerCase();
+                    const codeRaw = (document.getElementById('loginCode')?.value||'').toString().trim();
+                    const codeKey = codeRaw.toLowerCase();
+                    const errDiv = document.getElementById('loginError');
+                    const errTxt = document.getElementById('errorText');
+                    function showErr(msg){ if(errDiv&&errTxt){ errDiv.classList.remove('hidden'); errTxt.textContent = msg; } console.warn('[LOGIN]', msg); }
+                    function hideErr(){ if(errDiv){ errDiv.classList.add('hidden'); } }
+                    if(!roleSel) return showErr('Silakan pilih role terlebih dahulu');
+                    if(!codeKey) return showErr('Silakan masukkan kode akses');
+                    hideErr();
+
+                    // 1) Pastikan master user dimuat/merge terlebih dulu
+                    try{ window.mergeUserDatabase && window.mergeUserDatabase(); }catch(e){ console.warn('mergeUserDatabase error', e); }
+
+                    // 2) Bangun index gabungan (local + builtin)
+                    let { idx, ls } = buildIndex();
+                    let user = idx.get(codeKey) || null;
+
+                    // 3) Jika belum ketemu, coba pull ringan (non-blocking), lalu re-merge & rebuild index
+                    if(!user){
+                        try{ if(typeof window.pullDataFromCloud==='function'){ window.pullDataFromCloud(); } }catch(e){}
+                        try{ window.mergeUserDatabase && window.mergeUserDatabase(); }catch(e){}
+                        const rebuilt = buildIndex(); idx = rebuilt.idx; ls = rebuilt.ls; user = idx.get(codeKey) || null;
+                    }
+
+                    // 4) Jika ketemu hanya di builtin, persist ke local agar sesi berikutnya langsung ada
+                    if(user && (!ls || !Array.isArray(ls) || !ls.find(u=> (u&&u.kode)&& String(u.kode).toLowerCase().trim()===codeKey))){
+                        const newUsers = Array.isArray(ls)? ls.slice() : [];
+                        newUsers.push({ kode:user.kode, nama:user.nama, role:user.role, outlets:user.outlets, status:user.status||'aktif' });
+                        setLS('users', newUsers);
+                    }
+
+                    if(!user){ return showErr('Kode akses tidak ditemukan. Hubungi Admin.'); }
+                    if(String(user.status||'aktif').toLowerCase()!=='aktif'){ return showErr('Akun dinonaktifkan. Hubungi Admin.'); }
+
+                    // 5) Siapkan allowed outlets
+                    let outletsAll = []; try{ outletsAll = JSON.parse(localStorage.getItem('outlets')||'[]'); }catch(e){ outletsAll = []; }
+                    const allIds = Array.isArray(outletsAll)? outletsAll.map(o=>o.id).filter(Boolean) : [];
+                    let outletsField = user.outlets;
+                    if(outletsField==='all' || user.role==='admin' || user.role==='head-office'){
+                        outletsField = allIds.length? allIds.slice() : 'all';
+                    } else if(Array.isArray(outletsField)){
+                        outletsField = outletsField.filter(id=> allIds.includes(id));
+                        if(!outletsField.length && allIds.length){ outletsField = [allIds[0]]; }
+                    } else if(typeof outletsField==='string' && outletsField){
+                        outletsField = allIds.includes(outletsField)? outletsField : (allIds[0]||outletsField);
+                    } else {
+                        outletsField = allIds.length? [allIds[0]] : [];
+                    }
+
+                    const effectiveRole = (user.role || roleSel);
+                    const current = { kode: user.kode, nama: user.nama||'User', role: effectiveRole, outlets: outletsField };
+                    setLS('currentUser', current);
+                    try{ window.currentUser = current; }catch(e){}
+
+                    // 6) Siapkan sesi & tampilkan app
+                    try{ window.setupUserSession && window.setupUserSession(); }catch(e){ console.error('setupUserSession error', e); }
+                    try{ window.showMainApp && window.showMainApp(); }catch(e){ console.error('showMainApp error', e); }
+                }catch(err){
+                    console.error('Fatal login error:', err);
+                    const errDiv = document.getElementById('loginError');
+                    const errTxt = document.getElementById('errorText');
+                    if(errDiv&&errTxt){ errDiv.classList.remove('hidden'); errTxt.textContent = 'Terjadi kesalahan saat login. Muat ulang lalu coba lagi.'; }
+                }
+            };
+        })();
+
+
+        // ===== FINAL OVERRIDE: Robust login (code-only, case-insensitive, role-agnostic) =====
+        (function(){
+            window.login = function(){
+                try{
+                    const roleSel = (document.getElementById('loginRole')?.value||'').toString().trim().toLowerCase();
+                    const codeRaw = (document.getElementById('loginCode')?.value||'').toString().trim();
+                    const codeKey = codeRaw.toLowerCase();
+                    const errDiv = document.getElementById('loginError');
+                    const errTxt = document.getElementById('errorText');
+                    function showErr(msg){ if(errDiv&&errTxt){ errDiv.classList.remove('hidden'); errTxt.textContent = msg; } }
+                    function hideErr(){ if(errDiv){ errDiv.classList.add('hidden'); } }
+
+                    if (!codeKey){ showErr('Silakan masukkan kode akses'); return; }
+                    hideErr();
+
+                    // Merge database bawaan terlebih dahulu agar tidak tergantung cloud
+                    try { window.mergeUserDatabase && window.mergeUserDatabase(); } catch(e) { console.warn('mergeUserDatabase error', e); }
+
+                    // Ambil users dari local
+                    function getUsersLS(){ try{ const v = JSON.parse(localStorage.getItem('users')||'[]'); return Array.isArray(v)? v : []; } catch(e){ return []; } }
+                    let users = getUsersLS();
+
+                    // Bangun index gabungan: local + builtin userDatabase
+                    const idx = new Map();
+                    users.forEach(u=>{ if(u&&u.kode){ idx.set(String(u.kode).toLowerCase().trim(), u); } });
+                    try {
+                        const db = window.userDatabase || {};
+                        Object.keys(db).forEach(role => {
+                            (db[role]||[]).forEach(u => {
+                                if (!u || !u.kode) return;
+                                const k = String(u.kode).toLowerCase().trim();
+                                if (!idx.has(k)) idx.set(k, { kode:String(u.kode), nama:u.nama||'User', role:role, outlets:(u.outlets!=null?u.outlets:(role==='admin'||role==='head-office'?'all':[])), status:'aktif' });
+                            });
+                        });
+                    } catch(e) { console.warn('build builtin index failed', e); }
+
+                    let user = idx.get(codeKey) || null;
+                    if (!user){ showErr('Kode akses tidak ditemukan. Hubungi Admin.'); return; }
+                    if (String(user.status||'aktif').toLowerCase() !== 'aktif'){ showErr('Akun dinonaktifkan. Hubungi Admin.'); return; }
+
+                    // Pastikan user ada di localStorage agar sesi berikutnya stabil
+                    if (!users.find(u => String(u.kode).toLowerCase().trim() === codeKey)){
+                        users.push({ kode:user.kode, nama:user.nama, role:user.role, outlets:user.outlets, status:user.status||'aktif' });
+                        try { localStorage.setItem('users', JSON.stringify(users)); } catch(e) {}
+                    }
+
+                    // Susun allowed outlets aman
+                    let outletsAll = []; try { outletsAll = JSON.parse(localStorage.getItem('outlets')||'[]'); } catch(e){ outletsAll=[]; }
+                    const allIds = Array.isArray(outletsAll) ? outletsAll.map(o=>o.id).filter(Boolean) : [];
+                    let outletsField = user.outlets;
+                    if (outletsField==='all' || user.role==='admin' || user.role==='head-office'){
+                        outletsField = allIds.length ? allIds.slice() : 'all';
+                    } else if (Array.isArray(outletsField)){
+                        outletsField = outletsField.filter(id => allIds.includes(id));
+                        if (!outletsField.length && allIds.length){ outletsField = [allIds[0]]; }
+                    } else if (typeof outletsField==='string' && outletsField){
+                        outletsField = allIds.includes(outletsField) ? outletsField : (allIds[0]||outletsField);
+                    } else {
+                        outletsField = allIds.length ? [allIds[0]] : [];
+                    }
+
+                    const current = { kode: user.kode, nama: user.nama||'User', role: user.role, outlets: outletsField };
+                    try { localStorage.setItem('currentUser', JSON.stringify(current)); } catch(e) {}
+                    window.currentUser = current;
+
+                    try { window.setupUserSession && window.setupUserSession(); } catch(e){ console.error('setupUserSession error', e); }
+                    try { window.showMainApp && window.showMainApp(); } catch(e){ console.error('showMainApp error', e); }
+                } catch(err){
+                    const errDiv = document.getElementById('loginError');
+                    const errTxt = document.getElementById('errorText');
+                    if (errDiv && errTxt){ errDiv.classList.remove('hidden'); errTxt.textContent = 'Terjadi kesalahan saat login. Muat ulang lalu coba lagi.'; }
+                    console.error('Fatal login error:', err);
+                }
+            };
+        })();
+
     </script>
+<script>
+// === ULTRA ROBUST LOGIN OVERRIDE v5 ===
+(function(){
+  console.info('[LOGIN] ultra override v5 loaded');
+  window.login = async function(){
+    const errDiv = document.getElementById('loginError');
+    const errTxt = document.getElementById('errorText');
+    function showErr(msg){ if(errDiv&&errTxt){ errDiv.classList.remove('hidden'); errTxt.textContent = msg; } }
+    function hideErr(){ if(errDiv){ errDiv.classList.add('hidden'); } }
+    try{
+      const codeRaw = (document.getElementById('loginCode')?.value||'').trim();
+      if(!codeRaw){ showErr('Silakan masukkan kode akses'); return; }
+      hideErr();
+      const codeKey = codeRaw.toLowerCase();
+
+      // 1) Pastikan master user ter-merge lebih dulu
+      try{ if(typeof mergeUserDatabase==='function') mergeUserDatabase(); }catch(e){ console.warn('[LOGIN] mergeUserDatabase error', e); }
+
+      // 2) Bangun index user gabungan: local + builtin
+      function getUsersLS(){ try{ const a = JSON.parse(localStorage.getItem('users')||'[]'); return Array.isArray(a)? a:[]; }catch(e){ return []; } }
+      const builtin = (function(){
+        const coll=[]; try{ const db = window.userDatabase||{}; Object.keys(db).forEach(r=>{ (db[r]||[]).forEach(u=>{ if(u&&u.kode){ coll.push({ kode:String(u.kode), nama:u.nama||'User', role:r, outlets:u.outlets!=null? u.outlets : (r==='admin'||r==='head-office'?'all':[]), status:'aktif' }); } }); }); }catch(e){}
+        return coll;
+      })();
+      let users = getUsersLS();
+      const idx = new Map();
+      users.forEach(u=>{ if(u&&u.kode){ idx.set(String(u.kode).toLowerCase(), u); } });
+      builtin.forEach(u=>{ const k = String(u.kode).toLowerCase(); if(!idx.has(k)) idx.set(k, u); });
+
+      let user = idx.get(codeKey) || null;
+
+      // 3) Jika belum ketemu, coba pull ringan dari cloud lalu rebuild index
+      if(!user && typeof pullDataFromCloud==='function'){
+        try{
+          await pullDataFromCloud();
+          users = getUsersLS();
+          const idx2 = new Map();
+          users.forEach(u=>{ if(u&&u.kode){ idx2.set(String(u.kode).toLowerCase(), u); } });
+          builtin.forEach(u=>{ const k = String(u.kode).toLowerCase(); if(!idx2.has(k)) idx2.set(k, u); });
+          user = idx2.get(codeKey) || null;
+        }catch(e){ console.warn('[LOGIN] pullDataFromCloud error', e); }
+      }
+
+      if(!user){ showErr('Kode akses tidak ditemukan. Hubungi Admin.'); return; }
+      if(String(user.status||'aktif').toLowerCase()!=='aktif'){ showErr('Akun dinonaktifkan. Hubungi Admin.'); return; }
+
+      // 4) Pastikan user tercatat di localStorage.users
+      if(!users.find(u=> String(u.kode).toLowerCase()===codeKey)){
+        users.push({ kode:user.kode, nama:user.nama, role:user.role, outlets:user.outlets, status:user.status||'aktif' });
+        try{ localStorage.setItem('users', JSON.stringify(users)); }catch(e){ console.warn('[LOGIN] save users failed', e); }
+      }
+
+      // 5) Susun allowed outlets aman
+      let outletsAll=[]; try{ outletsAll = JSON.parse(localStorage.getItem('outlets')||'[]'); }catch(e){ outletsAll=[]; }
+      const allIds = Array.isArray(outletsAll)? outletsAll.map(o=>o.id).filter(Boolean):[];
+      let outletsField = user.outlets;
+      if(outletsField==='all' || user.role==='admin' || user.role==='head-office'){
+        outletsField = allIds.length? allIds.slice(): 'all';
+      }else if(Array.isArray(outletsField)){
+        outletsField = outletsField.filter(id=> allIds.includes(id));
+        if(!outletsField.length && allIds.length) outletsField=[allIds[0]];
+      }else if(typeof outletsField==='string' && outletsField){
+        outletsField = allIds.includes(outletsField)? outletsField : (allIds[0]||outletsField);
+      }else{
+        outletsField = allIds.length? [allIds[0]] : [];
+      }
+
+      const current = { kode:user.kode, nama:user.nama||'User', role:user.role, outlets:outletsField };
+      try{ localStorage.setItem('currentUser', JSON.stringify(current)); }catch(e){}
+      window.currentUser = current;
+
+      // 6) Siapkan sesi & tampilkan app
+      try{ if(typeof setupUserSession==='function') setupUserSession(); }catch(e){ console.warn('setupUserSession error', e); }
+      try{ if(typeof showMainApp==='function') showMainApp(); }catch(e){ console.warn('showMainApp error', e); }
+      console.info('[LOGIN] success as', current.role, current.nama);
+    }catch(err){
+      console.error('Fatal login error:', err);
+      showErr('Terjadi kesalahan saat login. Muat ulang lalu coba lagi.');
+    }
+  };
+})();
+</script>
 </body>
 </html>
