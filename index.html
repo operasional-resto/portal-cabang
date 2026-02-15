@@ -2117,32 +2117,57 @@
 
         function login() {
             const role = document.getElementById('loginRole').value;
-            const code = document.getElementById('loginCode').value.trim();
+            const codeRaw = document.getElementById('loginCode').value || '';
+            const code = codeRaw.trim();
             const errorDiv = document.getElementById('loginError');
             const errorText = document.getElementById('errorText');
-            
+
             if (!role) {
                 errorDiv.classList.remove('hidden');
                 errorText.textContent = 'Silakan pilih role terlebih dahulu';
                 return;
             }
-            
+
             if (!code) {
                 errorDiv.classList.remove('hidden');
                 errorText.textContent = 'Silakan masukkan kode akses';
                 return;
             }
-            
-            // Find user in database
-            const users = JSON.parse(localStorage.getItem('users') || '[]');
-            const user = users.find(u => u.kode === code && u.role === role);
-            
+
+            // Try to find user in localStorage users first
+            let users = JSON.parse(localStorage.getItem('users') || '[]');
+            const norm = s => (s || '').toString().trim().toLowerCase();
+            let user = users.find(u => norm(u.kode) === norm(code) && u.role === role);
+
+            // Fallback: check predefined userDatabase for the role
+            if (!user) {
+                const dbList = userDatabase[role] || [];
+                const found = dbList.find(u => norm(u.kode) === norm(code));
+                if (found) {
+                    user = { kode: found.kode, nama: found.nama, role: role, outlets: found.outlets, status: 'aktif' };
+                    users.push(user);
+                    try { localStorage.setItem('users', JSON.stringify(users)); } catch (e) {}
+                }
+            }
+
+            // Fallback 2: if still not found, try to find by kode only (in case role changed)
+            if (!user) {
+                user = users.find(u => norm(u.kode) === norm(code));
+                if (user) {
+                    // If role mismatch, but user exists, allow login but update role to selected one
+                    if (user.role !== role) {
+                        user.role = role;
+                        try { localStorage.setItem('users', JSON.stringify(users)); } catch (e) {}
+                    }
+                }
+            }
+
             if (!user) {
                 errorDiv.classList.remove('hidden');
                 errorText.textContent = 'Kode akses tidak valid untuk role ' + getRoleName(role);
                 return;
             }
-            
+
             // Set current user
             currentUser = {
                 kode: user.kode,
@@ -2150,8 +2175,8 @@
                 role: user.role,
                 outlets: user.outlets
             };
-            
-            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+
+            try { localStorage.setItem('currentUser', JSON.stringify(currentUser)); } catch (e) {}
             setupUserSession();
             showMainApp();
         }
