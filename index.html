@@ -8,10 +8,11 @@
     <link rel="manifest" href="data:application/json,{
         &quot;name&quot;: &quot;Portal Cabang - Pengendalian Operasional&quot;,
         &quot;short_name&quot;: &quot;Portal Cabang&quot;,
-        &quot;start_url&quot;: &quot;.&quot;,
+        &quot;start_url&quot;: &quot;./&quot;,
         &quot;display&quot;: &quot;standalone&quot;,
         &quot;background_color&quot;: &quot;%231e3a8a&quot;,
-        &quot;theme_color&quot;: &quot;%231e3a8a&quot;
+        &quot;theme_color&quot;: &quot;%231e3a8a&quot;,
+        &quot;scope&quot;: &quot;./&quot;
     }">
     <meta name="theme-color" content="#1e3a8a">
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
@@ -4565,12 +4566,24 @@
 
         function exportChecklistPDFFallback(items, statusMap, correctiveMap, outlet, today, labelWaktu, waktu) {
             const { jsPDF } = window.jspdf;
-            const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+            const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+            const margin = 10;
+            const availableWidth = pageWidth - (2 * margin);
 
             doc.setFontSize(14);
-            doc.text(`Checklist Operasional - ${outlet ? outlet.nama : ''}`, 40, 40);
-            doc.setFontSize(10);
-            doc.text(`Tanggal: ${new Date().toLocaleDateString('id-ID')} | Waktu: ${labelWaktu}`, 40, 58);
+            doc.text(`Checklist Operasional - ${outlet ? outlet.nama : ''}`, margin, 15);
+            doc.setFontSize(9);
+            doc.text(`Tanggal: ${new Date().toLocaleDateString('id-ID')} | Waktu: ${labelWaktu}`, margin, 22);
+
+            // Hitung lebar kolom proporsional
+            const colWidths = [
+                availableWidth * 0.15,  // Kategori: 15%
+                availableWidth * 0.40,  // Item: 40%
+                availableWidth * 0.15,  // Status: 15%
+                availableWidth * 0.30   // Tindakan: 30%
+            ];
 
             const rows = items.map(i => {
                 const st = statusMap[i.id] || '';
@@ -4579,20 +4592,29 @@
             });
 
             doc.autoTable({
-                startY: 74,
+                startY: 30,
                 head: [['Kategori', 'Item', 'Status', 'Tindakan Perbaikan']],
                 body: rows.length ? rows : [['-', '-', '-', '-']],
-                styles: { fontSize: 8, cellWidth: 'wrap' },
-                headStyles: { fillColor: [16, 185, 129] },
+                margin: margin,
                 columnStyles: {
-                    0: { cellWidth: 90 },
-                    1: { cellWidth: 250 },
-                    2: { cellWidth: 80, halign: 'center' },
-                    3: { cellWidth: 140 }
+                    0: { cellWidth: colWidths[0], halign: 'left', fontSize: 8 },
+                    1: { cellWidth: colWidths[1], halign: 'left', fontSize: 8 },
+                    2: { cellWidth: colWidths[2], halign: 'center', fontSize: 8 },
+                    3: { cellWidth: colWidths[3], halign: 'left', fontSize: 7 }
+                },
+                headStyles: { fillColor: [16, 185, 129], textColor: 255, fontSize: 9, fontStyle: 'bold' },
+                bodyStyles: { fontSize: 8 },
+                didDrawPage: (data) => {
+                    // Footer
+                    doc.setFontSize(8);
+                    doc.setTextColor(150);
+                    doc.text(`Halaman ${data.pageNumber} dari ${doc.lastAutoTable.pageCount || 1}`, margin, pageHeight - 5);
                 }
             });
 
-            doc.save(`Checklist_${(outlet ? outlet.nama.replace(/\s+/g,'_') : 'Outlet')}_${today}_${waktu}.pdf`);
+            const filename = `Checklist_${labelWaktu}_${(outlet ? outlet.nama.replace(/\s+/g,'_') : 'Outlet')}_${today}.pdf`;
+            doc.save(filename);
+            showToast(`✅ PDF berhasil diunduh: ${filename}`);
         }
 
         // ==================== HELPER FUNCTIONS ====================
