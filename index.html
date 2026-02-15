@@ -1662,22 +1662,18 @@
             praDuringList.forEach(n => baseItems.push({ id: idCounter++, kategori: 'operasional', nama: n, waktu: 'during', status: 'aktif' }));
             afterList.forEach(n => baseItems.push({ id: idCounter++, kategori: 'operasional', nama: n, waktu: 'after', status: 'aktif' }));
 
-            // Gabungkan: item kustom user tetap ada (yang tidak punya waktu akan diabaikan oleh filter baru)
+            // Gabungkan: item kustom user tetap ada + deduplikasi berdasarkan (kategori+nama+waktu)
             const custom = items.filter(i => !i.waktu);
-            let merged = [...baseItems, ...custom];
-
-            // Dedupe merged list by waktu/shift + normalized name to avoid duplicate entries
-            const normalize = s => (s || '').toString().toLowerCase().trim();
-            const seen = new Set();
-            merged = merged.filter(it => {
-                const waktuKey = it.waktu || (Array.isArray(it.shift) ? it.shift.join(',') : '');
-                const key = `${waktuKey}::${normalize(it.nama || it.name || '')}`;
-                if (seen.has(key)) return false;
-                seen.add(key);
-                return true;
+            const keySet = new Set();
+            const deduped = [];
+            [...baseItems, ...custom].forEach(i => {
+                const key = `${i.kategori}|${i.nama}|${i.waktu || 'none'}`;
+                if (!keySet.has(key)) {
+                    keySet.add(key);
+                    deduped.push(i);
+                }
             });
-
-            localStorage.setItem('checklistItems', JSON.stringify(merged));
+            localStorage.setItem('checklistItems', JSON.stringify(deduped));
             localStorage.setItem('checklistV2', '1');
         }
         function init() {
@@ -1685,7 +1681,6 @@
             initDefaultData();
             mergeUserDatabase();
             cleanupDefaultOutlets();
-            ensureChecklistSchemaV2();
 
             const savedUser = localStorage.getItem('currentUser');
             if (savedUser) {
@@ -4300,25 +4295,11 @@
 
         function saveChecklistSetting() {
             const items = JSON.parse(localStorage.getItem('checklistItems') || '[]');
-            const newKategori = document.getElementById('clsKategori').value;
-            const newNama = (document.getElementById('clsNama').value || '').trim();
-            const newWaktu = document.getElementById('clsWaktu').value;
-            const normalize = s => (s || '').toString().toLowerCase().trim();
-            const exists = items.some(i => {
-                const waktuKey = i.waktu || (Array.isArray(i.shift) ? i.shift.join(',') : '');
-                return waktuKey === newWaktu && normalize(i.nama) === normalize(newNama);
-            });
-            if (exists) {
-                showToast('Item checklist sudah ada untuk periode tersebut.');
-                closeModal('modalChecklistSetting');
-                return;
-            }
-
             items.push({
                 id: Date.now(),
-                kategori: newKategori,
-                nama: newNama,
-                waktu: newWaktu,
+                kategori: document.getElementById('clsKategori').value,
+                nama: document.getElementById('clsNama').value,
+                waktu: document.getElementById('clsWaktu').value,
                 status: 'aktif'
             });
             localStorage.setItem('checklistItems', JSON.stringify(items));
