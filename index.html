@@ -2261,7 +2261,15 @@
             const multiWrap = document.getElementById('multiOutletSelector');
             const multiBtn = document.getElementById('multiOutletBtn');
             const optionsBox = document.getElementById('multiOutletOptions');
-            const outlets = JSON.parse(localStorage.getItem('outlets') || '[]');
+            const outletsRaw = JSON.parse(localStorage.getItem('outlets') || '[]');
+            // Dedupe outlets by normalized name to avoid duplicate display entries
+            const normalize = s => (s || '').toString().trim().toLowerCase();
+            const nameMap = new Map();
+            outletsRaw.forEach(o => {
+                const key = normalize(o.nama) || o.id;
+                if (!nameMap.has(key)) nameMap.set(key, o);
+            });
+            const outlets = Array.from(nameMap.values());
 
             const isMultiRole = ['admin','head-office','area-manager'].includes(currentUser.role);
             if (isMultiRole) {
