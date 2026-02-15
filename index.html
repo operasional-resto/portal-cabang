@@ -1058,21 +1058,21 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Nama Bahan Baku</label>
                     <select id="prepNama" class="w-full px-4 py-2 border rounded-lg">
-                        <option>Siomay</option>
-                        <option>SMU</option>
-                        <option>SKT</option>
-                        <option>Telur</option>
-                        <option>Kentang</option>
-                        <option>Kol</option>
-                        <option>Pare</option>
-                        <option>Tahu</option>
-                        <option>Bumbu Siomay</option>
-                        <option>Bumbu Otak-otak</option>
-                        <option>Nasi pera</option>
-                        <option>nasi putih</option>
-                        <option>sambal terasi</option>
-                        <option>sambal mercon</option>
-                        <option>telur ceplok</option>
+                        <option>Kukus Siomay</option>
+                        <option>Kukus SMU</option>
+                        <option>Kukus SKT</option>
+                        <option>Rebus Telur</option>
+                        <option>Rebus Kentang</option>
+                        <option>Rebus Kol</option>
+                        <option>Rebus Pare</option>
+                        <option>Kukus Tahu</option>
+                        <option>Masak Bumbu Siomay</option>
+                        <option>Masak Bumbu Otak-otak</option>
+                        <option>Masak Nasi Pera</option>
+                        <option>Masak Nasi Putih</option>
+                        <option>Buat Sambal Terasi</option>
+                        <option>Buat Sambal Mercon</option>
+                        <option>Masak Telur Ceplok</option>
                     </select>
                 </div>
                 <div>
@@ -1532,17 +1532,17 @@
 
             // Dataset baru berdasarkan permintaan: pra + during (daftar yang sama), after (daftar berbeda)
             const praDuringList = [
-                "Muka bersih tidak berminyak dan merias wajah sesuai standart ",
+                "Muka bersih tidak berminyak dan merias wajah sesuai standar",
                 "Kulit tidak kering dan tidak bersisik memakai body lotion",
                 "Kuku pendek dan tidak menggunakan cat kuku",
                 "Bulu atau rambut hidung tidak menjorok keluar lubang hidung",
                 "Tidak ada bau yang tidak sedap dari badan, mulut, telinga atau bagian tubuh lainnya termasuk parfume yang aromanya menyengat",
                 "Mengenakan baju dan celana sesuai standar bentuk, warna bahan yang ditetapkan dalam kondisi bersih dan rapi",
-                "Memakai sepatu pantofel warna hitam dengan maksimal tinggi 3 cm dalam konsisi bersih dan mengkilap (bersemir)",
+                "Memakai sepatu pantofel warna hitam dengan maksimal tinggi 3 cm dalam kondisi bersih dan mengkilap (bersemir)",
                 "Memakai ikat pinggang warna hitam polos terbuat dari kulit bukan kain atau sintetis dengan kepala gesper yang sederhana",
                 "Memakai kaos singlet warna putih",
                 "Tidak memakai gelang, anting, kalung, jam tangan atau aksesoris lainnya",
-                "Tidak ada tato dibagian tubuh yang terbuka",
+                "Tidak ada tato di bagian tubuh yang terbuka",
                 "Pakai name tag sesuai standar yang ditetapkan",
                 "Memakai masker hitam dan kelengkapan kerja sesuai jabatannya",
                 "Rambut rapi dengan maksimal panjang 5 cm, tidak kusam/kering, rapi menggunakan minyak rambut yang tidak berbau menyengat",
@@ -1550,90 +1550,65 @@
                 "Hijab dalam keadaan rapi, terutama pada bagian leher harus kelihatan bentuk leher dengan bantuan jepit/bros tanpa manik dan warna sesuai warna hijab",
                 "Dilarang menggunakan jarum pentul",
                 "Memakai dalaman hijab berwarna hitam polos",
-                "Rambut panjang harus memakai hairnet dan poni tidak menjuntai kedepan menutupi dahi",
-                "Order Barang sudah dicek kacab, diinput dan dikirim ke bagian gudang khusus bagi cabang yang meminta barang ke gudang di siang hari",
+                "Rambut panjang harus memakai hairnet dan poni tidak menjuntai ke depan menutupi dahi",
+                "Order Barang sudah dicek kacab, diinput dan dikirim ke bagian gudang",
                 "Labeling pada pada barang datang, hasil prepare dan atau hasil produksi sudah dilakukan",
-                "Rekap Pemakaian sudah dikerjakan dan dikirim kebagian akuntasi",
+                "Rekap Pemakaian sudah dikerjakan dan dikirim ke bagian akuntansi",
                 "Pencatatan produksi cabang, produksi pusat sudah dikerjakan dan diverifikasi",
                 "Laporan Piutang (Bagi cabang yang ada transaksi piutang) sudah dikerjakan dan atau dikirim ke bagian akuntansi",
+                "Kesiapan Kelengkapan, Kebersihan, serta Kecukupan Sumber Daya (Area Dinning, Juicer, Kasir, Dapur)",
                 "Sendok, garpu, pisau roti dan sumpit tersedia dalam kondisi cukup",
                 "Tissue meja, saos, kecap, sambal dalam kondisi terisi cukup dan tidak belepotan",
-                "Nampan, buku menu, slip order dan alat tulis tersedia dalam kondisi bersih dan cukup ",
+                "Nampan, buku menu, slip order dan alat tulis tersedia dalam kondisi bersih dan cukup", 
                 "Kain Lap Meja (waiter, juicer, kasir dan dapur) dalam kondisi bersih dan tidak ada bau tidak sedap",
                 "Kain Lap Sendok, gelas dan piring dalam kondisi bersih dan tidak ada bau tidak sedap",
                 "Hand sanitizer pada posisi pintu masuk & kasir",
                 "Disinfektan tersedia dalam kondisi cukup",
-                "Semua meja, kursi, sofa, kursi anak dalam kondisi bersih dan tertata rapi",
-                "Semua pegangan pintu, pegangan anak tangga, pembatas antrian, standing menu dalam kondisi bersih",
-                "Washtafel dalam kondisi bersih, tersedia hand soap, tissue, tempat sampah, cermin",
-                "Tempat sampah semua area dalam kondisi tidak overload, tidak ada bau tidak sedap dan body bersih",
+                "Semua meja, kursi, sofa, kursi anak  dalam kondisi bersih dan tertata rapi",
+                "Semua pegangan pintu, pegangan anak tangga, pembatas antrian dalam kondisi bersih",
+                "Wastafel dalam kondisi bersih, tersedia hand soap, tissue, tempat sampah, cermin",
+                "Tempat Sampah semua area dalam kondisi bersih dan tidak ada bau tidak sedap",
                 "Pad counter dalam kondisi bersih dan barang-barang tertata rapi",
-                "Semua Dinding (dinning, juicer, kasir, dapur, gudang) dalam kondisi bersih",
-                "Semua lantai (dinning, kasir, juicer, dapur, gudang) dan gotter dalam kondisi bersih",
+                "Semua Dinding (dining, juicer, kasir, dapur, gudang) dalam kondisi bersih",
+                "Semua lantai (dining, kasir, juicer, dapur, gudang) dan gotter dalam kondisi bersih",
                 "Kaca (jendela, interior) dalam kondisi bersih tidak buram",
-                "Difuser AC / AC dalam kondisi bersih dan dingin",
+                "Diffuser AC / AC dalam kondisi bersih dan dingin",
                 "TV display, Audio player dalam kondisi normal dan bersih",
                 "Interior (gambar dinding, lampu gantung, furniture) dalam kondisi bersih",
-                "Service Extention dalam kondisi rapi dan bersih",
-                "Lampu (dinning, box menu, Logo) dalam kondisi menyala normal dan bersih",
-                "Tanaman Hias tidak ada yang layu daunnya dan dalam kondisi berdebu",
-                "Sarana Promosi (x benner, tripod benner, standing menu, baliho) dalam kondisi layak dan bersih",
-                "Peralatan proses juicer (Blender, Juicer, extraktor, sendok ukur, pisau, telenan, saringan juice, teh, scope es krim, tea maker, mesin serut es, mesin cup seler, es maker, timbangan) dalam kondisi berfungsi normal dan bersih",
-                "Alat saji (Plate coupe 7.5, 8, 9, 10,5. Saucer 4,25. Bowl 4.5, 6, Bowl omega 7, square plate besar, kecil, piring snack, piring lauk, mangkok kuring/ramen, saucer, sendok, gelas juice, gelas teh, cangkir kopi, luch box, box gurame, paperbowl set 650, 800, 1000, cup oval, cup 400, 500, sedotan) dalam kondisi cukup dan bersih",
-                "Meja kerja disemua area dalam kondisi bersih dan penataan barang-barang rapi",
+                "Service Extension dalam kondisi rapi dan bersih",
+                "Lampu (dining, box menu, Logo) dalam kondisi menyala normal dan bersih",
+                "Tanaman Hias tidak ada yang layu daunnya",
+                "Sarana Promosi (x banner, tripod banner, standing menu, baliho) dalam kondisi layak dan bersih",
+                "Peralatan proses juicer (Blender, Juicer, extractor, sendok ukur, pisau, talenan, saringan juice, teh, scoop es krim, tea maker, mesin serut es, mesin cup sealer, es maker, timbangan) dalam kondisi berfungsi normal dan bersih",
+                "Alat saji (Plate coupe 7.5, 8, 9, 10,5. Saucer 4,25. Bowl 4.5, 6, Bowl omega 7, square plate besar, kecil, piring snack, piring lauk, mangkok kuring/ramen, saucer, sendok, gelas juice, gelas teh, cangkir kopi, lunch box, box gurame, paper bowl set 650, 800, 1000, cup oval, cup 400, 500, sedotan) dalam kondisi cukup dan bersih",
+                "Meja kerja di semua area dalam kondisi bersih dan penataan barang-barang rapi",
                 "Alegro dalam kondisi berfungsi normal, bersih dan penataan buah rapi",
-                "Frezzer, under frezzer, chiller, under chiller, salad case (gasket, kaca, rak, kipas, handle, body) juicer dan dapur dalam kondisi berfungsi normal, bersih, bunga es tidak tebal dan penataan bahan baku rapi",
+                "Freezer, under freezer, chiller, under chiller, salad case (gasket, kaca, rak, kipas, handle, body) juicer dan dapur dalam kondisi berfungsi normal, bersih, bunga es tidak tebal dan penataan bahan baku rapi",
                 "Chiller, salad case juicer dan dapur dalam kondisi normal dan bersih",
-                "Tempat prepare diarea juicer dan dapur (food pan, kitchen set, termos nasi, kranjang, toples, box risol, box thawing) dalam kondisi tertutup dan dalam kondisi bersih",
-                "Tempat penyimpanan bahan baku & produk (rak susun, rak tempel, dan lemari penyimpanan termasuk laci-laci) dalam kondisi bersih dan barang-barang tersusun rapi",
-                "Sink, grase trap, grase induk dan gutter dalam kondisi bersih",
+                "Tempat prepare di area juicer dan dapur (food pan, kitchen set, termos nasi, keranjang, toples, box risol, box thawing) dalam kondisi tertutup dan dalam kondisi bersih",
+                "Tempat penyimpanan bahan baku & produk (rak susun, rak tempel dan lemari penyimpanan termasuk laci-laci) dalam kondisi bersih dan barang-barang tersusun rapi",
+                "Sink, grease trap, grease induk dan gutter dalam kondisi bersih",
                 "Langit-langit semua area dalam kondisi baik dan bersih",
-                "Tempat sampah semua area dalam kondisi tertutup, bersih dan tidak ada bau tidak sedap",
+                "Tempat sampah semua area dalam kondisi bersih dan tidak ada bau tidak sedap",
                 "Dinding semua area dalam kondisi bersih",
-                "Mesin POS, alat pembayaran (EDC BCA, Mandiri, BRI, Gobiz, Grabfood, Hand phone, HT dalam kondisi normal dan bersih",
-                "Setor omzet maksimal jam 14.00 dan laporan setor omzet ke bagian keuangan",
-                "Kelengkapan peralatan kasir (kalkulator, money detektor, scaner, steplest, isolatif) dalam kondisi cukup",
+                "Mesin POS, alat pembayaran (EDC BCA, Mandiri, BRI, Gobiz, Grabfood, Handphone, HT dalam kondisi normal dan bersih",
+                "Setor omset maksimal jam 14.00 dan laporan setor omzet ke bagian keuangan",
+                "Kelengkapan peralatan kasir (kalkulator, money detector, stepless, isolatif) dalam kondisi cukup",
                 "Uang receh tersedia cukup (20rb, 10rb, 5rb, 2rb, 1rb, 500, 200, 100)",
-                "Peralatan proses cook (steamer nasi, rice cooker, gas cooker, steamer, magic com, microwave, toaster, panci, wajan, sodet, saringan mie, saringan minyak, jepitan makanan, deep fryer, teflon, cetakan nasi, kompor high, kompor low, pisau, talenan, parutan keju, timbangan) dalam kondisi layak pakai, bersih dan bebas dari kontaminasi antar alat, maupun dari dari hal-hal lainnya",
-                "Hood dan exchause dalam kondisi bersih dan berfungsi normal",
+                "Peralatan proses cook (steamer nasi, rice cooker, gas cooker, steamer, magic com, microwave, toaster, panci, wajan, sodet, saringan mie, saringan minyak, jepitan makanan, deep fryer, teflon, cetakan nasi, kompor high, kompor low, pisau, talenan, parutan keju, timbangan) dalam kondisi layak pakai, bersih dan bebas dari kontaminasi antar alat, maupun dari  dari hal-hal lainnya",
+                "Hood dan exhaust dalam kondisi bersih dan berfungsi normal",
                 "Mesin cuci piring dan mesin pembuat es dalam kondisi bersih dan berfungsi normal",
                 "Semua area bebas dari hama(tikus, kecoa, lalat, semut)",
-                "Toilet - Handle pintu dan kunci pintu berfungsi normal dan bersih",
+                "Fasilitas toilet di dalam cabang",
+                "Handle pintu dan kunci pintu berfungsi normal dan bersih",
                 "Aroma toilet harum atau tidak berbau tidak sedap",
-                "Toilet - Lantai dan dinding dalam kondisi bersih dan kering",
-                "Toilet - Lampu penerangan tidak ada yang mati dan fan exchause dengan kondisi bersih dan berfungsi normal",
+                "Lantai dan dinding dalam kondisi bersih dan kering",
+                "Lampu penerangan tidak ada yang mati dan fan exhaust dengan kondisi bersih dan berfungsi normal",
                 "Kloset dalam kondisi baik,bersih dan kering",
                 "Shower kloset berfungsi normal dan bersih",
-                "Washtafel dan cermin dalam kondisi normal dan bersih serta tersedia hand soap dan tissue",
-                "Urinor dalam kondisi bersih, berfungsi normal dan tidak beraroma tidak sedap",
-                "Tempat Sampah dalam kondisi bersih tidak ada bau tidak sedap",
-                "Chiller berfungsi normal",
-                "Freezer berfungsi normal",
-                "Salad Case berfungsi normal",
-                "Alegro berfungsi normal",
-                "Kompor Gas High menyala normal",
-                "Kompor Gas Low menyala normal",
-                "Kompor Listrik High berfungsi normal",
-                "Kompor Listrik Low berfungsi normal",
-                "Deep Fryer berfungsi normal",
-                "Toaster berfungsi normal",
-                "Steamer Siomay berfungsi normal",
-                "Gas Cooker/ Rice Cooker berfungsi normal",
-                "Exhaust fan berfungsi",
-                "Lampu dapur menyala",
-                "Lampu dining menyala",
-                "Dispenser berfungsi normal",
-                "Tea maker berfungsi normal",
-                "Mesin es serut berfungsi normal",
-                "POS berfungsi normal",
-                "Mesin EDC berfungsi normal",
-                "Printer struk berfungsi normal",
-                "Peralatan juice tersedia lengkap dan berfungsi normal",
-                "Cuttlires tersedia lengkap",
-                "Peralatan masak tersedia lengkap dan berfungsi normal",
-                "Round Tray tersedia lengkap",
-                "Alat kebersihan lengkap",
-                "APAR tersedia dan layak pakai"
+                "Wastafel dalam kondisi normal dan bersih serta tersedia hand soap dan tissue",
+                "Urinoir dalam kondisi bersih, berfungsi normal dan tidak beraroma tidak sedap",
+                "Tempat Sampah dalam kondisi bersih tidak ada bau tidak sedap"
             ];
             const afterList = [
                 "Permintaan barang ke gudang sudah di lakukan dan diverifikasi oleh kacab atau staff penggantinya",
@@ -1642,8 +1617,7 @@
                 "Bahan baku sisa sudah masuk pendingin (bahan baku food & juice)",
                 "Semua peralatan saji dan kerja dalam kondisi bersih (dapur, juicer, kasir, dinning)",
                 "Grase Trap dan Gotter dalam kondisi bersih (dapur & juicer)",
-                "Semua area dalam kondisi bersih meliputi semua dinding, semua kolong meja kerja, pendingin, meja makan dan bangku dan atau sofa dalam kondisi bersih",
-                "Semua area bebas hama (tikus, kecoa, semut, lalat)",
+                "Semua area dalam kondisi bersih meliputi semua dinding, semua kolong meja kerja, pendingin, meja makan dan bangku dan atau sofa dalam kondisi bersih. Semua area bebas hama (tikus, kecoa, semut, lalat)",
                 "Tea maker, Microwave, Toaster, Magic com, Mesin cup sealer, Mesin ice cube, Mesin cuci piring dalam kondisi off",
                 "Exaust Pan, Kompor gas, kompor listrik  dalam kondisi off",
                 "Valve Gas central, Valve kran air dalam kondisi off",
