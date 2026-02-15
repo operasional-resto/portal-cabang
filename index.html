@@ -4530,22 +4530,43 @@
             // Tampilkan loading
             showToast('📄 Sedang membuat PDF dengan template...');
             
-            // Kirim ke Google Apps Script dengan method POST
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = webAppUrl;
-            
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'payload';
-            input.value = JSON.stringify(payload);
-            
-            form.appendChild(input);
-            document.body.appendChild(form);
-            form.submit();
-            document.body.removeChild(form);
-            
-            showToast('✅ PDF sedang diunduh dari Google Drive...');
+            // Kirim ke Google Apps Script dengan fetch POST
+            fetch(webAppUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(response => {
+                // Response adalah PDF blob
+                if (response.ok) {
+                    return response.blob();
+                } else {
+                    return response.text().then(text => {
+                        throw new Error('HTTP ' + response.status + ': ' + text);
+                    });
+                }
+            })
+            .then(blob => {
+                // Create download link untuk blob
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `Checklist_${labelWaktu}_${(outlet ? outlet.nama.replace(/\s+/g,'_') : 'Outlet')}_${today}.pdf`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+                
+                showToast('✅ PDF berhasil diunduh!');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('⚠️ Gagal membuat PDF: ' + error.message + '. Gunakan PDF biasa.');
+                // Fallback ke PDF biasa
+                exportChecklistPDFFallback(items, statusMap, correctiveMap, outlet, today, labelWaktu, waktu);
+            });
         }
 
         function exportChecklistPDFWithTemplate(items, statusMap, correctiveMap, outlet, today, labelWaktu, waktu, templateId) {
