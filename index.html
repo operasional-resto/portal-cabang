@@ -1070,11 +1070,21 @@
                         <option>Kukus Tahu</option>
                         <option>Masak Bumbu Siomay</option>
                         <option>Masak Bumbu Otak-otak</option>
+                        <option>Masak Sambal</option>
                         <option>Masak Nasi Pera</option>
                         <option>Masak Nasi Putih</option>
                         <option>Buat Sambal Terasi</option>
                         <option>Buat Sambal Mercon</option>
                         <option>Masak Telur Ceplok</option>
+                        <option>Goreng Emping</option>
+                        <option>Goreng Kerupuk</option>
+                        <option>Buat Kuah Siram</option>
+                        <option>Thawing Buntut Sop</option>
+                        <option>Thawing Tongseng Sop</option>
+                        <option>Thawing Tongseng Ayam</option>
+                        <option>Thawing Soto Betawi</option>
+                        <option>Kukus PKS</option>
+                        <option>Kukus Lenjeran</option>
                     </select>
                 </div>
                 <div>
@@ -4466,6 +4476,13 @@
         }
 
         // ==================== EXPORT CHECKLIST PDF ====================
+        // Template IDs untuk setiap waktu checklist
+        const CHECKLIST_TEMPLATES = {
+            'pra': '1hYRZYA03wJDq8BEjetaLvYJfQl9BEHETa77Xpn5yFGA',      // Pra Opening
+            'during': '1hYRZYA03wJDq8BEjetaLvYJfQl9BEHETa77Xpn5yFGA',  // During Opening
+            'after': '1ctJZ40N2Q9-erLTT71HvUoH3myoBUTzoZLdA_wfaPWo'    // After Closing
+        };
+
         function exportChecklistPDF() {
             const waktu = document.getElementById('checklistShift').value; // pra|during|after
             const items = JSON.parse(localStorage.getItem('checklistItems') || '[]').filter(i => i.waktu === waktu);
@@ -4475,13 +4492,83 @@
             const correctiveMap = JSON.parse(localStorage.getItem('checklistCorrective') || '{}')[todayKey] || {};
             const outlets = JSON.parse(localStorage.getItem('outlets') || '[]');
             const outlet = outlets.find(o => o.id === currentOutlet);
+            const labelWaktu = waktu === 'pra' ? 'Pra Opening' : waktu === 'during' ? 'During Opening' : 'After Closing';
 
+            // Gunakan template Google Docs jika tersedia
+            const templateId = CHECKLIST_TEMPLATES[waktu];
+            if (templateId) {
+                exportChecklistWithGoogleTemplate(templateId, items, statusMap, correctiveMap, outlet, today, labelWaktu, waktu);
+            } else {
+                // Fallback ke PDF biasa jika template tidak ada
+                exportChecklistPDFFallback(items, statusMap, correctiveMap, outlet, today, labelWaktu, waktu);
+            }
+        }
+
+        function exportChecklistWithGoogleTemplate(templateId, items, statusMap, correctiveMap, outlet, today, labelWaktu, waktu) {
+            // Ambil Web App URL dari config
+            const config = JSON.parse(localStorage.getItem('spreadsheetConfig') || '{}');
+            const webAppUrl = config.webAppUrl;
+            
+            if (!webAppUrl) {
+                showToast('⚠️ Web App URL belum dikonfigurasi. Gunakan PDF biasa.');
+                exportChecklistPDFFallback(items, statusMap, correctiveMap, outlet, today, labelWaktu, waktu);
+                return;
+            }
+            
+            // Siapkan payload untuk Google Apps Script
+            const payload = {
+                action: 'exportChecklistToPdf',
+                waktu: waktu,
+                outlet: outlet,
+                items: items,
+                statusMap: statusMap,
+                correctiveMap: correctiveMap,
+                today: today
+            };
+            
+            // Tampilkan loading
+            showToast('📄 Sedang membuat PDF dengan template...');
+            
+            // Kirim ke Google Apps Script
+            fetch(webAppUrl, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: JSON.stringify(payload)
+            })
+            .then(response => response.json().catch(() => ({})))
+            .then(data => {
+                if (data.success) {
+                    showToast('✅ PDF berhasil dibuat! Membuka download...');
+                    // Open PDF in new tab
+                    if (data.data && data.data.pdfUrl) {
+                        window.open(data.data.pdfUrl, '_blank');
+                    }
+                } else {
+                    showToast('⚠️ Error: ' + (data.error || 'Gagal membuat PDF'));
+                    // Fallback ke PDF biasa
+                    exportChecklistPDFFallback(items, statusMap, correctiveMap, outlet, today, labelWaktu, waktu);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('⚠️ Gagal menghubungi server. Gunakan PDF biasa.');
+                // Fallback ke PDF biasa
+                exportChecklistPDFFallback(items, statusMap, correctiveMap, outlet, today, labelWaktu, waktu);
+            });
+        }
+
+        function exportChecklistPDFWithTemplate(items, statusMap, correctiveMap, outlet, today, labelWaktu, waktu, templateId) {
+            // Fungsi ini bisa digunakan untuk preview atau fallback jika GAS tidak tersedia
+            // Saat ini semua proses dilakukan di Google Apps Script
+            showToast('Fitur auto-fill sudah dipindahkan ke Google Apps Script untuk hasil yang lebih baik.');
+        }
+
+        function exportChecklistPDFFallback(items, statusMap, correctiveMap, outlet, today, labelWaktu, waktu) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
 
             doc.setFontSize(14);
             doc.text(`Checklist Operasional - ${outlet ? outlet.nama : ''}`, 40, 40);
-            const labelWaktu = waktu === 'pra' ? 'Pra Opening' : waktu === 'during' ? 'During' : 'After Closing';
             doc.setFontSize(10);
             doc.text(`Tanggal: ${new Date().toLocaleDateString('id-ID')} | Waktu: ${labelWaktu}`, 40, 58);
 
