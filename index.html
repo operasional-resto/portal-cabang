@@ -170,6 +170,9 @@
                         <a href="javascript:void(0)" onclick="showModule('preparation')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-blue-700 transition-all">
                             <i class="fas fa-leaf"></i><span>Preparation</span>
                         </a>
+                        <a href="javascript:void(0)" onclick="showModule('checklist')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-blue-700 transition-all">
+                            <i class="fas fa-clipboard-check"></i><span>Checklist</span>
+                        </a>
                         <a href="javascript:void(0)" onclick="showModule('reject')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-blue-700 transition-all">
                             <i class="fas fa-times-circle"></i><span>Catatan Reject</span>
                         </a>
@@ -522,7 +525,56 @@
                 </div>
             </section>
 
-            <!-- Checklist Operasional removed (replaced by Google Forms). -->
+            <!-- Checklist Operasional -->
+            <section id="module-checklist" class="module-section p-4 lg:p-8 fade-in">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">Checklist Operasional</h2>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <a href="https://docs.google.com/forms/d/e/1FAIpQLSeo7n9_b7BTOzJb4-3D0w3Hvn7d5LLtc5qoQbluqlbyznch8A/viewform?usp=sharing&ouid=116965073150857505198" target="_blank" class="block">
+                        <div class="bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-xl p-6 shadow-sm card-hover transition-all cursor-pointer h-full">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-white text-sm font-medium opacity-90">Pra Opening</p>
+                                    <p class="text-2xl font-bold text-white mt-2">Checklist</p>
+                                </div>
+                                <div class="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-clipboard-check text-white text-2xl"></i>
+                                </div>
+                            </div>
+                            <p class="text-white text-xs opacity-75 mt-4">Klik untuk membuka form</p>
+                        </div>
+                    </a>
+                    <a href="https://docs.google.com/forms/d/e/1FAIpQLSeo7n9_b7BTOzJb4-3D0w3Hvn7d5LLtc5qoQbluqlbyznch8A/viewform?usp=sharing&ouid=116965073150857505198" target="_blank" class="block">
+                        <div class="bg-gradient-to-br from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 rounded-xl p-6 shadow-sm card-hover transition-all cursor-pointer h-full">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-white text-sm font-medium opacity-90">During Operation</p>
+                                    <p class="text-2xl font-bold text-white mt-2">Checklist</p>
+                                </div>
+                                <div class="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-clipboard-check text-white text-2xl"></i>
+                                </div>
+                            </div>
+                            <p class="text-white text-xs opacity-75 mt-4">Klik untuk membuka form</p>
+                        </div>
+                    </a>
+                    <a href="https://docs.google.com/forms/d/e/1FAIpQLSdfo2gHQyo0BWLC8xIhQzvjUk6NHZi-wUSnk8R2QpibbeT-Pg/viewform?usp=sharing&ouid=116965073150857505198" target="_blank" class="block">
+                        <div class="bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 rounded-xl p-6 shadow-sm card-hover transition-all cursor-pointer h-full">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-white text-sm font-medium opacity-90">After Closing</p>
+                                    <p class="text-2xl font-bold text-white mt-2">Checklist</p>
+                                </div>
+                                <div class="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-clipboard-check text-white text-2xl"></i>
+                                </div>
+                            </div>
+                            <p class="text-white text-xs opacity-75 mt-4">Klik untuk membuka form</p>
+                        </div>
+                    </a>
+                </div>
+            </section>
 
             <!-- Catatan Barang Reject -->
             <section id="module-reject" class="module-section p-4 lg:p-8 fade-in">
