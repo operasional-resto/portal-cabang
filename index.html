@@ -550,10 +550,13 @@
                         <button id="btnExportChecklist" onclick="exportChecklistPDF()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-all">
                             <i class="fas fa-file-pdf mr-2"></i>Export PDF
                         </button>
-                        <a id="btnFormPra" href="https://docs.google.com/forms/d/e/1FAIpQLSeo7n9_b7BTOzJb4-3D0w3Hvn7d5LLtc5qoQbluqlbyznch8A/viewform?usp=sharing&ouid=116965073150857505198" target="_blank" rel="noopener" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all flex items-center gap-2">
+                        <a id="btnFormPra" href="https://docs.google.com/forms/d/e/1FAIpQLSeo7n9_b7BTOzJb4-3D0w3Hvn7d5LLtc5qoQbluqlbyznch8A/viewform?usp=sharing&ouid=116965073150857505198" onclick="openPrefilledForm('pra', event)" target="_blank" rel="noopener" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all flex items-center gap-2">
                             <i class="fas fa-external-link-alt"></i>Form Pra Opening
                         </a>
-                        <a id="btnFormAfter" href="https://docs.google.com/forms/d/e/1FAIpQLSdfo2gHQyo0BWLC8xIhQzvjUk6NHZi-wUSnk8R2QpibbeT-Pg/viewform?usp=sharing&ouid=116965073150857505198" target="_blank" rel="noopener" class="bg-slate-700 text-white px-4 py-2 rounded-lg hover:bg-slate-800 transition-all flex items-center gap-2">
+                        <a id="btnFormDuring" href="https://docs.google.com/forms/d/e/1FAIpQLSeo7n9_b7BTOzJb4-3D0w3Hvn7d5LLtc5qoQbluqlbyznch8A/viewform?usp=sharing&ouid=116965073150857505198" onclick="openPrefilledForm('during', event)" target="_blank" rel="noopener" class="bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700 transition-all flex items-center gap-2">
+                            <i class="fas fa-external-link-alt"></i>Form During
+                        </a>
+                        <a id="btnFormAfter" href="https://docs.google.com/forms/d/e/1FAIpQLSdfo2gHQyo0BWLC8xIhQzvjUk6NHZi-wUSnk8R2QpibbeT-Pg/viewform?usp=sharing&ouid=116965073150857505198" onclick="openPrefilledForm('after', event)" target="_blank" rel="noopener" class="bg-slate-700 text-white px-4 py-2 rounded-lg hover:bg-slate-800 transition-all flex items-center gap-2">
                             <i class="fas fa-external-link-alt"></i>Form After Closing
                         </a>
                         <select id="checklistShift" class="px-4 py-2 border rounded-lg" onchange="loadChecklist()">
@@ -590,6 +593,33 @@
 
                 <!-- Daftar Checklist -->
                 <div class="grid gap-4" id="checklistContainer"></div>
+
+                <!-- Riwayat Pengisian Checklist -->
+                <div class="mt-6 bg-white rounded-xl shadow-sm p-4">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold">Riwayat Pengisian Checklist</h3>
+                        <div class="flex items-center gap-2">
+                            <input type="date" id="submissionsDateFilter" class="px-3 py-2 border rounded-lg" onchange="renderChecklistSubmissions()">
+                            <button class="px-3 py-2 bg-gray-100 rounded-lg" onclick="clearChecklistFilter()">Reset</button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left" id="checklistSubmissionsTable">
+                            <thead class="text-xs text-gray-500 uppercase bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-2">Hari</th>
+                                    <th class="px-4 py-2">Timestamp</th>
+                                    <th class="px-4 py-2">Outlet</th>
+                                    <th class="px-4 py-2">Pelaksana</th>
+                                    <th class="px-4 py-2">Waktu Operasional</th>
+                                    <th class="px-4 py-2">Bukti (PDF)</th>
+                                    <th class="px-4 py-2">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="checklistSubmissionsTbody" class="divide-y divide-gray-100"></tbody>
+                        </table>
+                    </div>
+                </div>
             </section>
 
             <!-- Catatan Barang Reject -->
@@ -847,6 +877,56 @@
                             </thead>
                             <tbody id="checklistSettingTable" class="divide-y divide-gray-200"></tbody>
                         </table>
+                    </div>
+                </div>
+                <div class="mt-6 bg-white rounded-xl shadow-sm p-6">
+                    <h3 class="text-lg font-semibold mb-3">Pengaturan Prefill Google Form</h3>
+                    <p class="text-sm text-gray-500 mb-4">Masukkan entry IDs dari Google Form (mis. entry.123456) untuk prefill otomatis.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Pra - Field Outlet</label>
+                            <input type="text" id="prefill_pra_outlet" placeholder="entry.123456" class="w-full px-3 py-2 border rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Pra - Field Pelaksana</label>
+                            <input type="text" id="prefill_pra_executor" placeholder="entry.456789" class="w-full px-3 py-2 border rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Pra - Field Tanggal</label>
+                            <input type="text" id="prefill_pra_date" placeholder="entry.789012" class="w-full px-3 py-2 border rounded-lg">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">During - Field Outlet</label>
+                            <input type="text" id="prefill_during_outlet" placeholder="entry.123456" class="w-full px-3 py-2 border rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">During - Field Pelaksana</label>
+                            <input type="text" id="prefill_during_executor" placeholder="entry.456789" class="w-full px-3 py-2 border rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">During - Field Tanggal</label>
+                            <input type="text" id="prefill_during_date" placeholder="entry.789012" class="w-full px-3 py-2 border rounded-lg">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">After - Field Outlet</label>
+                            <input type="text" id="prefill_after_outlet" placeholder="entry.123456" class="w-full px-3 py-2 border rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">After - Field Pelaksana</label>
+                            <input type="text" id="prefill_after_executor" placeholder="entry.456789" class="w-full px-3 py-2 border rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">After - Field Tanggal</label>
+                            <input type="text" id="prefill_after_date" placeholder="entry.789012" class="w-full px-3 py-2 border rounded-lg">
+                        </div>
+                    </div>
+                    <div class="mt-4 flex gap-2">
+                        <button class="px-4 py-2 bg-green-600 text-white rounded-lg" onclick="saveFormPrefillSettings()">Simpan Prefill</button>
+                        <button class="px-4 py-2 bg-gray-100 rounded-lg" onclick="loadFormPrefillSettings()">Muat Ulang</button>
                     </div>
                 </div>
             </section>
@@ -1680,6 +1760,8 @@
                 setupUserSession();
                 showMainApp();
             }
+            // Load prefill mapping if any
+            try { loadFormPrefillSettings(); } catch(e) {}
         }
 
         function initDefaultData() {
@@ -4555,17 +4637,61 @@
                 }
             })
             .then(blob => {
-                // Create download link untuk blob
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = `Checklist_${labelWaktu}_${(outlet ? outlet.nama.replace(/\s+/g,'_') : 'Outlet')}_${today}.pdf`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(url);
-                
-                showToast('✅ PDF berhasil diunduh!');
+                const filename = `Checklist_${labelWaktu}_${(outlet ? outlet.nama.replace(/\s+/g,'_') : 'Outlet')}_${today}.pdf`;
+                // Convert blob to data URL for persistent storage and then save metadata
+                const reader = new FileReader();
+                reader.onload = async function() {
+                    const dataUrl = reader.result; // base64 data URL
+                    // Attempt to save to Google Drive via Web App if configured
+                    let driveUrl = null;
+                    try {
+                        const saved = await savePdfToDriveViaWebApp(dataUrl, filename);
+                        if (saved && saved.fileUrl) driveUrl = saved.fileUrl;
+                    } catch (err) {
+                        console.warn('Save to Drive failed:', err);
+                    }
+
+                    // Save submission metadata + prefer driveUrl if available
+                    const submissions = JSON.parse(localStorage.getItem('checklistSubmissions') || '[]');
+                    submissions.unshift({
+                        day: toYMD(new Date()),
+                        timestamp: new Date().toISOString(),
+                        outlet: outlet ? outlet.nama : '-',
+                        executor: (currentUser && (currentUser.nama || currentUser.username)) || '-',
+                        waktu: labelWaktu,
+                        filename: filename,
+                        fileUrl: driveUrl || null,
+                        dataUrl: driveUrl ? null : dataUrl
+                    });
+                    // Keep recent 500 entries
+                    localStorage.setItem('checklistSubmissions', JSON.stringify(submissions.slice(0, 500)));
+                    renderChecklistSubmissions();
+
+                    // Trigger download
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                    showToast(driveUrl ? '✅ PDF disimpan ke Drive dan diunduh.' : '✅ PDF berhasil diunduh dan disimpan sebagai bukti lokal.');
+                };
+                reader.onerror = function(err) {
+                    console.error('Failed to read blob as data URL', err);
+                    // fallback: still download
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                    showToast('✅ PDF berhasil diunduh! (gagal menyimpan bukti)');
+                };
+                reader.readAsDataURL(blob);
             })
             .catch(error => {
                 console.error('Error:', error);
@@ -4670,6 +4796,142 @@
                 user: currentUser.nama
             });
             localStorage.setItem('activities', JSON.stringify(activities.slice(-100)));
+        }
+
+        // ==================== CHECKLIST SUBMISSIONS (RIWAYAT) ====================
+        function renderChecklistSubmissions() {
+            const tbody = document.getElementById('checklistSubmissionsTbody');
+            if (!tbody) return;
+            const all = JSON.parse(localStorage.getItem('checklistSubmissions') || '[]');
+            const dateFilter = document.getElementById('submissionsDateFilter').value;
+            const filtered = dateFilter ? all.filter(s => s.day === dateFilter) : all;
+            if (!filtered.length) {
+                tbody.innerHTML = `<tr><td class="px-4 py-3" colspan="7">Belum ada data pengisian checklist.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = filtered.map((s) => {
+                const origIndex = all.findIndex(a => a.timestamp === s.timestamp && a.filename === s.filename);
+                return `
+                <tr>
+                    <td class="px-4 py-3">${formatDate(s.day)}</td>
+                    <td class="px-4 py-3">${new Date(s.timestamp).toLocaleString('id-ID')}</td>
+                    <td class="px-4 py-3">${s.outlet || '-'}</td>
+                    <td class="px-4 py-3">${s.executor || '-'}</td>
+                    <td class="px-4 py-3">${s.waktu || '-'}</td>
+                    <td class="px-4 py-3">
+                        ${s.fileUrl ? `<a class="text-blue-600 hover:underline" href="${s.fileUrl}" target="_blank">Lihat di Drive</a>` : `<a class="text-blue-600 hover:underline" href="${s.dataUrl}" download="${s.filename}" target="_blank">Unduh PDF</a>`}
+                    </td>
+                    <td class="px-4 py-3"><button class="px-2 py-1 bg-red-100 text-red-700 rounded" onclick="deleteChecklistSubmission(${origIndex})">Hapus</button></td>
+                </tr>
+                `;
+            }).join('');
+        }
+
+        function deleteChecklistSubmission(index) {
+            const all = JSON.parse(localStorage.getItem('checklistSubmissions') || '[]');
+            if (index < 0 || index >= all.length) return;
+            all.splice(index, 1);
+            localStorage.setItem('checklistSubmissions', JSON.stringify(all));
+            renderChecklistSubmissions();
+            showToast('Item riwayat dihapus');
+        }
+
+        function clearChecklistFilter() {
+            document.getElementById('submissionsDateFilter').value = '';
+            renderChecklistSubmissions();
+        }
+
+        function loadFormPrefillSettings() {
+            const cfg = JSON.parse(localStorage.getItem('formPrefill') || '{}');
+            // pra
+            document.getElementById('prefill_pra_outlet').value = (cfg.pra && cfg.pra.outlet) || '';
+            document.getElementById('prefill_pra_executor').value = (cfg.pra && cfg.pra.executor) || '';
+            document.getElementById('prefill_pra_date').value = (cfg.pra && cfg.pra.date) || '';
+            // during
+            document.getElementById('prefill_during_outlet').value = (cfg.during && cfg.during.outlet) || '';
+            document.getElementById('prefill_during_executor').value = (cfg.during && cfg.during.executor) || '';
+            document.getElementById('prefill_during_date').value = (cfg.during && cfg.during.date) || '';
+            // after
+            document.getElementById('prefill_after_outlet').value = (cfg.after && cfg.after.outlet) || '';
+            document.getElementById('prefill_after_executor').value = (cfg.after && cfg.after.executor) || '';
+            document.getElementById('prefill_after_date').value = (cfg.after && cfg.after.date) || '';
+            showToast('Pengaturan prefill dimuat');
+        }
+
+        function saveFormPrefillSettings() {
+            const cfg = {
+                pra: {
+                    outlet: document.getElementById('prefill_pra_outlet').value.trim(),
+                    executor: document.getElementById('prefill_pra_executor').value.trim(),
+                    date: document.getElementById('prefill_pra_date').value.trim()
+                },
+                during: {
+                    outlet: document.getElementById('prefill_during_outlet').value.trim(),
+                    executor: document.getElementById('prefill_during_executor').value.trim(),
+                    date: document.getElementById('prefill_during_date').value.trim()
+                },
+                after: {
+                    outlet: document.getElementById('prefill_after_outlet').value.trim(),
+                    executor: document.getElementById('prefill_after_executor').value.trim(),
+                    date: document.getElementById('prefill_after_date').value.trim()
+                }
+            };
+            localStorage.setItem('formPrefill', JSON.stringify(cfg));
+            showToast('Pengaturan prefill tersimpan');
+        }
+
+        // Build prefilled Google Form URL using optional mappings in localStorage
+        function buildPrefillUrl(formType, baseUrl) {
+            // formType: 'pra' | 'during' | 'after'
+            // Expect localStorage.formPrefill to be an object like:
+            // { pra: { outlet: 'entry.123', executor: 'entry.456', date: 'entry.789', waktu: 'entry.101' }, ... }
+            const cfg = JSON.parse(localStorage.getItem('formPrefill') || '{}');
+            const map = cfg[formType] || {};
+            if (!map || Object.keys(map).length === 0) return baseUrl;
+            const params = [];
+            const outlets = JSON.parse(localStorage.getItem('outlets') || '[]');
+            const outlet = outlets.find(o => o.id === currentOutlet);
+            const executor = (currentUser && (currentUser.nama || currentUser.username)) || '';
+            const today = toYMD(new Date());
+            if (map.outlet) params.push(`${encodeURIComponent(map.outlet)}=${encodeURIComponent(outlet ? outlet.nama : '')}`);
+            if (map.executor) params.push(`${encodeURIComponent(map.executor)}=${encodeURIComponent(executor)}`);
+            if (map.date) params.push(`${encodeURIComponent(map.date)}=${encodeURIComponent(today)}`);
+            if (map.waktu) params.push(`${encodeURIComponent(map.waktu)}=${encodeURIComponent(formType)}`);
+            if (!params.length) return baseUrl;
+            // If baseUrl already contains ?, append with &
+            return baseUrl + (baseUrl.includes('?') ? '&' : '?') + params.join('&');
+        }
+
+        function openPrefilledForm(formType, ev) {
+            ev = ev || window.event;
+            if (ev) ev.preventDefault();
+            let baseUrl = '';
+            if (formType === 'pra') baseUrl = document.getElementById('btnFormPra').getAttribute('href');
+            else if (formType === 'during') baseUrl = document.getElementById('btnFormDuring').getAttribute('href');
+            else baseUrl = document.getElementById('btnFormAfter').getAttribute('href');
+            const url = buildPrefillUrl(formType, baseUrl);
+            window.open(url, '_blank', 'noopener');
+        }
+
+        // Send base64 dataUrl to the configured Web App to save into Drive.
+        // Expects the Web App doPost to handle { action: 'saveChecklistPdf', filename, dataUrl }
+        async function savePdfToDriveViaWebApp(dataUrl, filename) {
+            const config = JSON.parse(localStorage.getItem('spreadsheetConfig') || '{}');
+            const webAppUrl = config.webAppUrl;
+            if (!webAppUrl) throw new Error('Web App URL belum dikonfigurasi');
+            const payload = { action: 'saveChecklistPdf', filename, dataUrl };
+            const resp = await fetch(webAppUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!resp.ok) {
+                const txt = await resp.text();
+                throw new Error('HTTP ' + resp.status + ': ' + txt);
+            }
+            const json = await resp.json().catch(() => null);
+            if (!json) throw new Error('Invalid JSON response from Web App');
+            return json; // expect { success: true, fileUrl: 'https://...' }
         }
 
         function clearForm(fields) {
