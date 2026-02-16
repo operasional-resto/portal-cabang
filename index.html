@@ -141,135 +141,7 @@
                     <i class="fas fa-sign-in-alt mr-2"></i>Masuk
                 </button>
             </div>
-            <div class="mt-6 p-4 bg-gray-50 rounded-lg">
-                <p class="text-xs text-gray-600"><i class="fas fa-info-circle mr-1"></i> Hubungi Admin jika Anda belum memiliki kode akses.</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main App -->
-    <div id="mainApp" class="hidden">
-        <!-- Mobile Header -->
-        <div class="lg:hidden bg-gradient-to-r from-blue-800 to-indigo-900 text-white p-4 flex items-center justify-between sticky top-0 z-40">
-            <button onclick="toggleSidebar()" class="p-2"><i class="fas fa-bars text-xl"></i></button>
-            <h1 class="font-bold">Portal Cabang</h1>
-            <button onclick="logout()" class="p-2"><i class="fas fa-sign-out-alt text-xl"></i></button>
-        </div>
-
-        <!-- Sidebar Overlay -->
-        <div id="sidebarOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden"></div>
-
-        <!-- Sidebar -->
-        <aside id="sidebar" class="fixed left-0 top-0 h-full w-72 bg-gradient-to-b from-blue-900 to-indigo-900 text-white z-50 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 overflow-y-auto">
-            <div class="p-6 border-b border-white/10">
-                <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center">
-                        <i class="fas fa-store text-2xl"></i>
-                    </div>
-                    <div>
-                        <h1 class="font-bold text-lg">Portal Cabang</h1>
-                        <p class="text-xs text-blue-200" id="accessModeLabel">Mode Akses</p>
-                    </div>
-                </div>
-            </div>
-            <div class="p-4 border-b border-white/10">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <div>
-                        <p class="font-medium text-sm" id="userName">User</p>
-                        <p class="text-xs text-blue-200" id="userRole">Role</p>
-                    </div>
-                </div>
-            </div>
-            <nav class="p-4 space-y-1">
-                <a href="#" onclick="showModule('dashboard')" class="sidebar-link active flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-all">
-                    <i class="fas fa-chart-pie w-5"></i><span>Dashboard</span>
-                </a>
-                <a href="#" onclick="showModule('jadwal-kerja')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-all">
-                    <i class="fas fa-calendar-alt w-5"></i><span>Jadwal Kerja</span>
-                </a>
-                <a href="#" onclick="showModule('tugas-harian')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-all">
-                    <i class="fas fa-tasks w-5"></i><span>Tugas Harian</span>
-                </a>
-                <a href="#" onclick="showModule('preparation')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-all">
-                    <i class="fas fa-utensils w-5"></i><span>Preparation Bahan Baku</span>
-                </a>
-                <a href="#" onclick="showModule('checklist')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-all">
-                    <i class="fas fa-clipboard-check w-5"></i><span>Checklist Operasional</span>
-                </a>
-                <a href="#" onclick="showModule('reject')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-all">
-                    <i class="fas fa-times-circle w-5"></i><span>Catatan Barang Reject</span>
-                </a>
-                <a href="#" onclick="showModule('inventori')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-all">
-                    <i class="fas fa-boxes w-5"></i><span>Inventori (FIFO/FEFO)</span>
-                </a>
-                <a href="#" onclick="showModule('logbook')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-all">
-                    <i class="fas fa-book w-5"></i><span>Log Book</span>
-                </a>
-                <a href="#" onclick="showModule('feedback')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-all">
-                    <i class="fas fa-comments w-5"></i><span>Customer Feedback</span>
-                </a>
-                <div class="pt-4 mt-4 border-t border-white/10" id="settingsMenu">
-                    <p class="px-4 text-xs text-blue-300 uppercase tracking-wider mb-2">Pengaturan</p>
-                    <a href="#" onclick="showModule('settings-checklist')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-all">
-                        <i class="fas fa-cog w-5"></i><span>Pengaturan Checklist</span>
-                    </a>
-                    <a href="#" onclick="showModule('settings-outlet')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-all">
-                        <i class="fas fa-store-alt w-5"></i><span>Pengaturan Outlet</span>
-                    </a>
-                    <a href="#" onclick="showModule('settings-users')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-all">
-                        <i class="fas fa-users-cog w-5"></i><span>Manajemen User</span>
-                    </a>
-                    <a href="#" onclick="showModule('spreadsheet')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-all">
-                        <i class="fas fa-database w-5"></i><span>Koneksi Spreadsheet</span>
-                    </a>
-                    <a href="#" onclick="showModule('guidelines')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-all">
-                        <i class="fas fa-book-reader w-5"></i><span>Panduan Akses</span>
-                    </a>
-                </div>
-            </nav>
-            <div class="p-4 mt-auto hidden lg:block">
-                <button onclick="logout()" class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-500/20 text-red-300 rounded-lg hover:bg-red-500/30 transition-all">
-                    <i class="fas fa-sign-out-alt"></i><span>Keluar</span>
-                </button>
-            </div>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="lg:ml-72 min-h-screen">
-            <!-- Outlet Selector Bar -->
-            <div id="outletSelectorBar" class="bg-white border-b px-4 lg:px-8 py-3 sticky top-0 lg:top-0 z-30">
-                <div class="flex items-center justify-between relative">
-                    <div class="flex items-center gap-3">
-                        <span class="text-sm text-gray-500">Outlet:</span>
-                        <!-- Single select (for non Admin/HO/AM) -->
-                        <select id="activeOutletSelect" onchange="changeActiveOutlet()" class="px-3 py-2 border rounded-lg text-sm font-medium"></select>
-                        <!-- Multi select (for Admin/HO/AM) -->
-                        <div id="multiOutletSelector" class="hidden">
-                            <button id="multiOutletBtn" type="button" onclick="toggleMultiOutletPanel()" class="px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 hover:bg-gray-200 truncate max-w-[60vw]">
-                                Pilih Outlet
-                            </button>
-                            <div id="multiOutletPanel" class="absolute left-0 top-full mt-2 w-[90vw] sm:w-[32rem] bg-white rounded-xl shadow-xl p-4 hidden z-40">
-                                <div class="flex items-center justify-between mb-3">
-                                    <span class="text-sm font-semibold text-gray-700">Pilih Outlet</span>
-                                    <button class="text-sm text-gray-500 hover:text-gray-700" onclick="toggleMultiOutletPanel()"><i class="fas fa-times"></i></button>
-                                </div>
-                                <div class="flex items-center gap-2 mb-3">
-                                    <button onclick="selectAllOutlets()" class="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 text-xs"><i class="fas fa-check-double mr-1"></i>Pilih Semua</button>
-                                    <button onclick="deselectAllOutlets()" class="px-3 py-1.5 bg-gray-500 text-white rounded-lg hover:bg-gray-600 text-xs"><i class="fas fa-times mr-1"></i>Hapus Semua</button>
-                                </div>
-                                <div id="multiOutletOptions" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-1"></div>
-                                <div class="mt-4 flex items-center justify-end gap-2">
-                                    <button onclick="applySelectedOutlets()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"><i class="fas fa-check mr-1"></i>Terapkan</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="accessBadge" class="px-3 py-1 rounded-full text-xs font-medium"></div>
-                </div>
-            </div>
+            // Checklist migration removed (checklist module deprecated)
 
             <!-- Dashboard -->
             <section id="module-dashboard" class="module-section active p-4 lg:p-8 fade-in">
@@ -540,87 +412,7 @@
                 </div>
             </section>
 
-            <!-- Checklist Operasional -->
-            <section id="module-checklist" class="module-section p-4 lg:p-8 fade-in">
-                <div class="flex items-center justify-between mb-4">
-                    <div>
-                        <h2 class="text-2xl font-bold text-gray-800">Checklist Operasional</h2>
-                    </div>
-                    <div class="flex gap-2 items-center">
-                        <button id="btnExportChecklist" onclick="exportChecklistPDF()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-all">
-                            <i class="fas fa-file-pdf mr-2"></i>Export PDF
-                        </button>
-                        <a id="btnFormPra" href="https://docs.google.com/forms/d/e/1FAIpQLSeo7n9_b7BTOzJb4-3D0w3Hvn7d5LLtc5qoQbluqlbyznch8A/viewform?usp=sharing&ouid=116965073150857505198" onclick="openPrefilledForm('pra', event)" target="_blank" rel="noopener" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all flex items-center gap-2">
-                            <i class="fas fa-external-link-alt"></i>Form Pra Opening
-                        </a>
-                        <a id="btnFormDuring" href="https://docs.google.com/forms/d/e/1FAIpQLSeo7n9_b7BTOzJb4-3D0w3Hvn7d5LLtc5qoQbluqlbyznch8A/viewform?usp=sharing&ouid=116965073150857505198" onclick="openPrefilledForm('during', event)" target="_blank" rel="noopener" class="bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700 transition-all flex items-center gap-2">
-                            <i class="fas fa-external-link-alt"></i>Form During
-                        </a>
-                        <a id="btnFormAfter" href="https://docs.google.com/forms/d/e/1FAIpQLSdfo2gHQyo0BWLC8xIhQzvjUk6NHZi-wUSnk8R2QpibbeT-Pg/viewform?usp=sharing&ouid=116965073150857505198" onclick="openPrefilledForm('after', event)" target="_blank" rel="noopener" class="bg-slate-700 text-white px-4 py-2 rounded-lg hover:bg-slate-800 transition-all flex items-center gap-2">
-                            <i class="fas fa-external-link-alt"></i>Form After Closing
-                        </a>
-                        <select id="checklistShift" class="px-4 py-2 border rounded-lg" onchange="loadChecklist()">
-                            <option value="pra">Pra Opening</option>
-                            <option value="during">During</option>
-                            <option value="after">After Closing</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Info Panel: Waktu + Progress + Stats -->
-                <div class="bg-white rounded-xl shadow-sm p-4 mb-6">
-                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                        <div class="flex items-center gap-3">
-                            <span class="px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold" id="clsShiftTime">Pra Opening</span>
-                        </div>
-                        <div class="flex-1">
-                            <div class="flex items-center justify-between text-xs text-gray-500 mb-1">
-                                <span id="clsProgressLabel">0%</span>
-                                <span>Progress</span>
-                            </div>
-                            <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
-                                <div id="clsProgressBar" class="h-full bg-green-500 rounded-full" style="width:0%"></div>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2 text-xs">
-                            <span class="px-2 py-1 rounded bg-gray-100 text-gray-700">Total: <b id="clsStatTotal">0</b></span>
-                            <span class="px-2 py-1 rounded bg-green-100 text-green-700">OK: <b id="clsStatOk">0</b></span>
-                            <span class="px-2 py-1 rounded bg-red-100 text-red-700">Tidak OK: <b id="clsStatNotOk">0</b></span>
-                            <span class="px-2 py-1 rounded bg-yellow-100 text-yellow-700">Pending CAPA: <b id="clsStatPending">0</b></span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Daftar Checklist -->
-                <div class="grid gap-4" id="checklistContainer"></div>
-
-                <!-- Riwayat Pengisian Checklist -->
-                <div class="mt-6 bg-white rounded-xl shadow-sm p-4">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-lg font-semibold">Riwayat Pengisian Checklist</h3>
-                        <div class="flex items-center gap-2">
-                            <input type="date" id="submissionsDateFilter" class="px-3 py-2 border rounded-lg" onchange="renderChecklistSubmissions()">
-                            <button class="px-3 py-2 bg-gray-100 rounded-lg" onclick="clearChecklistFilter()">Reset</button>
-                        </div>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm text-left" id="checklistSubmissionsTable">
-                            <thead class="text-xs text-gray-500 uppercase bg-gray-50">
-                                <tr>
-                                    <th class="px-4 py-2">Hari</th>
-                                    <th class="px-4 py-2">Timestamp</th>
-                                    <th class="px-4 py-2">Outlet</th>
-                                    <th class="px-4 py-2">Pelaksana</th>
-                                    <th class="px-4 py-2">Waktu Operasional</th>
-                                    <th class="px-4 py-2">Bukti (PDF)</th>
-                                    <th class="px-4 py-2">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody id="checklistSubmissionsTbody" class="divide-y divide-gray-100"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
+            <!-- Checklist Operasional removed (replaced by Google Forms). -->
 
             <!-- Catatan Barang Reject -->
             <section id="module-reject" class="module-section p-4 lg:p-8 fade-in">
@@ -855,81 +647,7 @@
                 </div>
             </section>
 
-            <!-- Pengaturan Checklist -->
-            <section id="module-settings-checklist" class="module-section p-4 lg:p-8 fade-in">
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-2xl font-bold text-gray-800">Pengaturan Checklist Operasional</h2>
-                    <button id="btnAddChecklist" onclick="openModal('modalChecklistSetting')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all">
-                        <i class="fas fa-plus mr-2"></i>Tambah Item
-                    </button>
-                </div>
-                <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kategori</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Item Checklist</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Waktu</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase action-column">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody id="checklistSettingTable" class="divide-y divide-gray-200"></tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="mt-6 bg-white rounded-xl shadow-sm p-6">
-                    <h3 class="text-lg font-semibold mb-3">Pengaturan Prefill Google Form</h3>
-                    <p class="text-sm text-gray-500 mb-4">Masukkan entry IDs dari Google Form (mis. entry.123456) untuk prefill otomatis.</p>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Pra - Field Outlet</label>
-                            <input type="text" id="prefill_pra_outlet" placeholder="entry.123456" class="w-full px-3 py-2 border rounded-lg">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Pra - Field Pelaksana</label>
-                            <input type="text" id="prefill_pra_executor" placeholder="entry.456789" class="w-full px-3 py-2 border rounded-lg">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Pra - Field Tanggal</label>
-                            <input type="text" id="prefill_pra_date" placeholder="entry.789012" class="w-full px-3 py-2 border rounded-lg">
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">During - Field Outlet</label>
-                            <input type="text" id="prefill_during_outlet" placeholder="entry.123456" class="w-full px-3 py-2 border rounded-lg">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">During - Field Pelaksana</label>
-                            <input type="text" id="prefill_during_executor" placeholder="entry.456789" class="w-full px-3 py-2 border rounded-lg">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">During - Field Tanggal</label>
-                            <input type="text" id="prefill_during_date" placeholder="entry.789012" class="w-full px-3 py-2 border rounded-lg">
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">After - Field Outlet</label>
-                            <input type="text" id="prefill_after_outlet" placeholder="entry.123456" class="w-full px-3 py-2 border rounded-lg">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">After - Field Pelaksana</label>
-                            <input type="text" id="prefill_after_executor" placeholder="entry.456789" class="w-full px-3 py-2 border rounded-lg">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">After - Field Tanggal</label>
-                            <input type="text" id="prefill_after_date" placeholder="entry.789012" class="w-full px-3 py-2 border rounded-lg">
-                        </div>
-                    </div>
-                    <div class="mt-4 flex gap-2">
-                        <button class="px-4 py-2 bg-green-600 text-white rounded-lg" onclick="saveFormPrefillSettings()">Simpan Prefill</button>
-                        <button class="px-4 py-2 bg-gray-100 rounded-lg" onclick="loadFormPrefillSettings()">Muat Ulang</button>
-                    </div>
-                </div>
-            </section>
+            <!-- Pengaturan Checklist removed (Google Forms used instead) -->
 
             <!-- Pengaturan Outlet -->
             <section id="module-settings-outlet" class="module-section p-4 lg:p-8 fade-in">
@@ -1430,39 +1148,7 @@
         </div>
     </div>
 
-    <!-- Modal Checklist Setting -->
-    <div id="modalChecklistSetting" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-xl shadow-xl w-full max-w-md mx-4">
-            <div class="p-6 border-b flex justify-between items-center">
-                <h3 class="text-xl font-bold">Tambah Item Checklist</h3>
-                <button onclick="closeModal('modalChecklistSetting')" class="text-gray-500 hover:text-gray-700"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="p-6 space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
-                    <select id="clsKategori" class="w-full px-4 py-2 border rounded-lg">
-                        <option value="kebersihan">Kebersihan</option>
-                        <option value="peralatan">Peralatan</option>
-                        <option value="keamanan">Keamanan</option>
-                        <option value="operasional">Operasional</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Nama Item</label>
-                    <input type="text" id="clsNama" class="w-full px-4 py-2 border rounded-lg">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Berlaku untuk Waktu</label>
-                    <select id="clsWaktu" class="w-full px-4 py-2 border rounded-lg">
-                        <option value="pra">Pra Opening (03.00 - 10.00)</option>
-                        <option value="during">During (16.00 - 18.00)</option>
-                        <option value="after">After Closing (21.00 - 00.00)</option>
-                    </select>
-                </div>
-                <button onclick="saveChecklistSetting()" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700">Simpan</button>
-            </div>
-        </div>
-    </div>
+    <!-- Modal Checklist Setting removed -->
 
     <!-- Modal Outlet -->
     <div id="modalOutlet" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
@@ -1584,11 +1270,11 @@
 
         // Role Permissions
         const rolePermissions = {
-            'admin': ['dashboard', 'jadwal-kerja', 'tugas-harian', 'preparation', 'checklist', 'reject', 'inventori', 'logbook', 'feedback', 'settings-checklist', 'settings-outlet', 'settings-users', 'spreadsheet', 'guidelines'],
-            'head-office': ['dashboard', 'jadwal-kerja', 'tugas-harian', 'preparation', 'checklist', 'reject', 'inventori', 'logbook', 'feedback'],
-            'area-manager': ['dashboard', 'jadwal-kerja', 'tugas-harian', 'preparation', 'checklist', 'reject', 'inventori', 'logbook', 'feedback'],
-            'kepala-cabang': ['dashboard', 'jadwal-kerja', 'tugas-harian', 'preparation', 'checklist', 'reject', 'inventori', 'logbook', 'feedback'],
-            'outlet': ['dashboard', 'jadwal-kerja', 'tugas-harian', 'preparation', 'checklist', 'reject', 'inventori', 'logbook', 'feedback']
+            'admin': ['dashboard', 'jadwal-kerja', 'tugas-harian', 'preparation', 'reject', 'inventori', 'logbook', 'feedback', 'settings-outlet', 'settings-users', 'spreadsheet', 'guidelines'],
+            'head-office': ['dashboard', 'jadwal-kerja', 'tugas-harian', 'preparation', 'reject', 'inventori', 'logbook', 'feedback'],
+            'area-manager': ['dashboard', 'jadwal-kerja', 'tugas-harian', 'preparation', 'reject', 'inventori', 'logbook', 'feedback'],
+            'kepala-cabang': ['dashboard', 'jadwal-kerja', 'tugas-harian', 'preparation', 'reject', 'inventori', 'logbook', 'feedback'],
+            'outlet': ['dashboard', 'jadwal-kerja', 'tugas-harian', 'preparation', 'reject', 'inventori', 'logbook', 'feedback']
         };
 
         // ==================== INITIALIZATION ====================
@@ -1623,131 +1309,7 @@
                 }
             } catch (e) { /* ignore */ }
         }
-        function ensureChecklistSchemaV2() {
-            // Jika sudah pernah migrate, skip
-            const migrated = localStorage.getItem('checklistV2');
-            let items = JSON.parse(localStorage.getItem('checklistItems') || '[]');
-            if (migrated === '1' && items.some(i => i.waktu)) return;
-
-            // Dataset baru berdasarkan permintaan: pra + during (daftar yang sama), after (daftar berbeda)
-            const praDuringList = [
-                "Muka bersih tidak berminyak dan merias wajah sesuai standar",
-                "Kulit tidak kering dan tidak bersisik memakai body lotion",
-                "Kuku pendek dan tidak menggunakan cat kuku",
-                "Bulu atau rambut hidung tidak menjorok keluar lubang hidung",
-                "Tidak ada bau yang tidak sedap dari badan, mulut, telinga atau bagian tubuh lainnya termasuk parfume yang aromanya menyengat",
-                "Mengenakan baju dan celana sesuai standar bentuk, warna bahan yang ditetapkan dalam kondisi bersih dan rapi",
-                "Memakai sepatu pantofel warna hitam dengan maksimal tinggi 3 cm dalam kondisi bersih dan mengkilap (bersemir)",
-                "Memakai ikat pinggang warna hitam polos terbuat dari kulit bukan kain atau sintetis dengan kepala gesper yang sederhana",
-                "Memakai kaos singlet warna putih",
-                "Tidak memakai gelang, anting, kalung, jam tangan atau aksesoris lainnya",
-                "Tidak ada tato di bagian tubuh yang terbuka",
-                "Pakai name tag sesuai standar yang ditetapkan",
-                "Memakai masker hitam dan kelengkapan kerja sesuai jabatannya",
-                "Rambut rapi dengan maksimal panjang 5 cm, tidak kusam/kering, rapi menggunakan minyak rambut yang tidak berbau menyengat",
-                "Tidak memelihara kumis, jenggot dan jambang dipotong sejajar ekor mata",
-                "Hijab dalam keadaan rapi, terutama pada bagian leher harus kelihatan bentuk leher dengan bantuan jepit/bros tanpa manik dan warna sesuai warna hijab",
-                "Dilarang menggunakan jarum pentul",
-                "Memakai dalaman hijab berwarna hitam polos",
-                "Rambut panjang harus memakai hairnet dan poni tidak menjuntai ke depan menutupi dahi",
-                "Order Barang sudah dicek kacab, diinput dan dikirim ke bagian gudang",
-                "Labeling pada pada barang datang, hasil prepare dan atau hasil produksi sudah dilakukan",
-                "Rekap Pemakaian sudah dikerjakan dan dikirim ke bagian akuntansi",
-                "Pencatatan produksi cabang, produksi pusat sudah dikerjakan dan diverifikasi",
-                "Laporan Piutang (Bagi cabang yang ada transaksi piutang) sudah dikerjakan dan atau dikirim ke bagian akuntansi",
-                "Sendok, garpu, pisau roti dan sumpit tersedia dalam kondisi cukup",
-                "Tissue meja, saos, kecap, sambal dalam kondisi terisi cukup dan tidak belepotan",
-                "Nampan, buku menu, slip order dan alat tulis tersedia dalam kondisi bersih dan cukup", 
-                "Kain Lap Meja (waiter, juicer, kasir dan dapur) dalam kondisi bersih dan tidak ada bau tidak sedap",
-                "Kain Lap Sendok, gelas dan piring dalam kondisi bersih dan tidak ada bau tidak sedap",
-                "Hand sanitizer pada posisi pintu masuk & kasir",
-                "Disinfektan tersedia dalam kondisi cukup",
-                "Semua meja, kursi, sofa, kursi anak  dalam kondisi bersih dan tertata rapi",
-                "Semua pegangan pintu, pegangan anak tangga, pembatas antrian dalam kondisi bersih",
-                "Wastafel dalam kondisi bersih, tersedia hand soap, tissue, tempat sampah, cermin",
-                "Tempat Sampah semua area dalam kondisi bersih dan tidak ada bau tidak sedap",
-                "Pad counter dalam kondisi bersih dan barang-barang tertata rapi",
-                "Semua Dinding (dining, juicer, kasir, dapur, gudang) dalam kondisi bersih",
-                "Semua lantai (dining, kasir, juicer, dapur, gudang) dan gotter dalam kondisi bersih",
-                "Kaca (jendela, interior) dalam kondisi bersih tidak buram",
-                "Diffuser AC / AC dalam kondisi bersih dan dingin",
-                "TV display, Audio player dalam kondisi normal dan bersih",
-                "Interior (gambar dinding, lampu gantung, furniture) dalam kondisi bersih",
-                "Service Extension dalam kondisi rapi dan bersih",
-                "Lampu (dining, box menu, Logo) dalam kondisi menyala normal dan bersih",
-                "Tanaman Hias tidak ada yang layu daunnya",
-                "Sarana Promosi (x banner, tripod banner, standing menu, baliho) dalam kondisi layak dan bersih",
-                "Peralatan proses juicer (Blender, Juicer, extractor, sendok ukur, pisau, talenan, saringan juice, teh, scoop es krim, tea maker, mesin serut es, mesin cup sealer, es maker, timbangan) dalam kondisi berfungsi normal dan bersih",
-                "Alat saji (Plate coupe 7.5, 8, 9, 10,5. Saucer 4,25. Bowl 4.5, 6, Bowl omega 7, square plate besar, kecil, piring snack, piring lauk, mangkok kuring/ramen, saucer, sendok, gelas juice, gelas teh, cangkir kopi, lunch box, box gurame, paper bowl set 650, 800, 1000, cup oval, cup 400, 500, sedotan) dalam kondisi cukup dan bersih",
-                "Meja kerja di semua area dalam kondisi bersih dan penataan barang-barang rapi",
-                "Alegro dalam kondisi berfungsi normal, bersih dan penataan buah rapi",
-                "Freezer, under freezer, chiller, under chiller, salad case (gasket, kaca, rak, kipas, handle, body) juicer dan dapur dalam kondisi berfungsi normal, bersih, bunga es tidak tebal dan penataan bahan baku rapi",
-                "Chiller, salad case juicer dan dapur dalam kondisi normal dan bersih",
-                "Tempat prepare di area juicer dan dapur (food pan, kitchen set, termos nasi, keranjang, toples, box risol, box thawing) dalam kondisi tertutup dan dalam kondisi bersih",
-                "Tempat penyimpanan bahan baku & produk (rak susun, rak tempel dan lemari penyimpanan termasuk laci-laci) dalam kondisi bersih dan barang-barang tersusun rapi",
-                "Sink, grease trap, grease induk dan gutter dalam kondisi bersih",
-                "Langit-langit semua area dalam kondisi baik dan bersih",
-                "Tempat sampah semua area dalam kondisi bersih dan tidak ada bau tidak sedap",
-                "Dinding semua area dalam kondisi bersih",
-                "Mesin POS, alat pembayaran (EDC BCA, Mandiri, BRI, Gobiz, Grabfood, Handphone, HT dalam kondisi normal dan bersih",
-                "Setor omset maksimal jam 14.00 dan laporan setor omzet ke bagian keuangan",
-                "Kelengkapan peralatan kasir (kalkulator, money detector, stepless, isolatif) dalam kondisi cukup",
-                "Uang receh tersedia cukup (20rb, 10rb, 5rb, 2rb, 1rb, 500, 200, 100)",
-                "Peralatan proses cook (steamer nasi, rice cooker, gas cooker, steamer, magic com, microwave, toaster, panci, wajan, sodet, saringan mie, saringan minyak, jepitan makanan, deep fryer, teflon, cetakan nasi, kompor high, kompor low, pisau, talenan, parutan keju, timbangan) dalam kondisi layak pakai, bersih dan bebas dari kontaminasi antar alat, maupun dari  dari hal-hal lainnya",
-                "Hood dan exhaust dalam kondisi bersih dan berfungsi normal",
-                "Mesin cuci piring dan mesin pembuat es dalam kondisi bersih dan berfungsi normal",
-                "Semua area bebas dari hama(tikus, kecoa, lalat, semut)",
-                "Fasilitas toilet di dalam cabang",
-                "Handle pintu dan kunci pintu berfungsi normal dan bersih",
-                "Aroma toilet harum atau tidak berbau tidak sedap",
-                "Lantai dan dinding dalam kondisi bersih dan kering",
-                "Lampu penerangan tidak ada yang mati dan fan exhaust dengan kondisi bersih dan berfungsi normal",
-                "Kloset dalam kondisi baik,bersih dan kering",
-                "Shower kloset berfungsi normal dan bersih",
-                "Wastafel dalam kondisi normal dan bersih serta tersedia hand soap dan tissue",
-                "Urinoir dalam kondisi bersih, berfungsi normal dan tidak beraroma tidak sedap",
-                "Tempat Sampah dalam kondisi bersih tidak ada bau tidak sedap"
-            ];
-            const afterList = [
-                "Permintaan barang ke gudang sudah di lakukan dan diverifikasi oleh kacab atau staff penggantinya",
-                "Labeling pada pada barang datang sudah dilakukan", 
-                "Stock Opname sudah dilakukan dan diinput kedalam form rekapan pemakaian",
-                "Bahan baku sisa sudah masuk pendingin (bahan baku food & juice)",
-                "Semua peralatan saji dan kerja dalam kondisi bersih (dapur, juicer, kasir, dinning)",
-                "Grase Trap dan Gotter dalam kondisi bersih (dapur & juicer)",
-                "Semua area dalam kondisi bersih meliputi semua dinding, semua kolong meja kerja, pendingin, meja makan dan bangku dan atau sofa dalam kondisi bersih. Semua area bebas hama (tikus, kecoa, semut, lalat)",
-                "Tea maker, Microwave, Toaster, Magic com, Mesin cup sealer, Mesin ice cube, Mesin cuci piring dalam kondisi off",
-                "Exaust Pan, Kompor gas, kompor listrik  dalam kondisi off",
-                "Valve Gas central, Valve kran air dalam kondisi off",
-                "Lampu penerangan dan lampu  hias area dinning, dapur, juicer, kasir serta lampu logo dalam kondisi off",
-                "Komputer admin, POS, Semua printer, Monitor checker, UPS dalam kondisi off",
-                "Uang Omzet, Kas Kecil, Modal sudah masuk ke brangkas dan kodenya diputar acak",
-                "Kipas Angin / AC, TV display, Audio player dalam kondisi off",
-                "Tidak ada sampah yang tertinggal di dalam cabang",
-                "Semua pintu dan jendela dalam kondisi terkunci"
-            ];
-
-            // Isi ulang items dengan dataset V2 (tanpa menghapus item kustom user)
-            const baseItems = [];
-            let idCounter = 1000;
-            praDuringList.forEach(n => baseItems.push({ id: idCounter++, kategori: 'operasional', nama: n, waktu: 'pra', status: 'aktif' }));
-            praDuringList.forEach(n => baseItems.push({ id: idCounter++, kategori: 'operasional', nama: n, waktu: 'during', status: 'aktif' }));
-            afterList.forEach(n => baseItems.push({ id: idCounter++, kategori: 'operasional', nama: n, waktu: 'after', status: 'aktif' }));
-
-            // Gabungkan: item kustom user tetap ada + deduplikasi berdasarkan (kategori+nama+waktu)
-            const custom = items.filter(i => !i.waktu);
-            const keySet = new Set();
-            const deduped = [];
-            [...baseItems, ...custom].forEach(i => {
-                const key = `${i.kategori}|${i.nama}|${i.waktu || 'none'}`;
-                if (!keySet.has(key)) {
-                    keySet.add(key);
-                    deduped.push(i);
-                }
-            });
-            localStorage.setItem('checklistItems', JSON.stringify(deduped));
-            localStorage.setItem('checklistV2', '1');
-        }
+        // Checklist migration removed (checklist module deprecated)
         function init() {
             // Pastikan data dasar terbuat lalu lakukan merge & cleanup sebelum menampilkan app
             initDefaultData();
@@ -1760,8 +1322,7 @@
                 setupUserSession();
                 showMainApp();
             }
-            // Load prefill mapping if any
-            try { loadFormPrefillSettings(); } catch(e) {}
+            // Load prefill mapping if any (no-op; prefill UI removed)
         }
 
         function initDefaultData() {
@@ -1784,8 +1345,7 @@
             if (!localStorage.getItem('checklistItems')) {
                 localStorage.setItem('checklistItems', JSON.stringify([]));
             }
-            // Migrasi/penjamin skema checklist (V2 - waktu: pra/during/after)
-            ensureChecklistSchemaV2();
+            // Checklist schema migration removed
         }
 
         function mergeUserDatabase() {
@@ -2501,7 +2061,7 @@
         function applyViewOnlyMode() {
             const addButtons = [
                 'btnAddJadwal', 'btnAddTugas', 'btnAddPrep', 'btnAddReject',
-                'btnAddInv', 'btnOutStock', 'btnAddLog', 'btnAddFeedback', 'btnAddChecklist',
+                'btnAddInv', 'btnOutStock', 'btnAddLog', 'btnAddFeedback',
                 'btnAddOutlet', 'btnAddUser'
             ];
             
@@ -2517,7 +2077,7 @@
 
             // Head Office: pastikan tombol Export PDF tetap terlihat (monitoring butuh export)
             if (currentUser && currentUser.role === 'head-office') {
-                ['btnExportJadwal','btnExportTugas','btnExportPreparation','btnExportChecklist','btnExportReject','btnExportFeedback'].forEach(id => {
+                ['btnExportJadwal','btnExportTugas','btnExportPreparation','btnExportReject','btnExportFeedback'].forEach(id => {
                     const btn = document.getElementById(id);
                     if (btn) btn.style.display = '';
                 });
@@ -2537,7 +2097,7 @@
                     'btnExportJadwal', 'btnAddJadwal',      // Jadwal Kerja: hanya lihat, tidak bisa export/tambah
                     'btnExportTugas', 'btnAddTugas',        // Tugas Harian: hanya lihat, tidak bisa export/tambah
                     'btnExportPreparation', 'btnAddPrep',   // Preparation: hanya lihat, tidak bisa export/tambah
-                    'btnExportChecklist',                   // Checklist: tidak bisa export
+                    // checklist removed
                     'btnExportReject',                      // Reject: tidak bisa export
                     'btnExportFeedback'                     // Feedback: tidak bisa export
                 ];
@@ -2595,12 +2155,12 @@
                 case 'jadwal-kerja': loadJadwal(); updateSchedulePeriodLabel(); break;
                 case 'tugas-harian': loadTugas(); break;
                 case 'preparation': loadPreparation(); break;
-                case 'checklist': loadChecklist(); break;
+                // checklist feature replaced by external Google Forms (removed)
                 case 'reject': loadReject(); break;
                 case 'inventori': loadInventori(); break;
                 case 'logbook': loadLogbook(); break;
                 case 'feedback': loadFeedback(); break;
-                case 'settings-checklist': loadChecklistSettings(); break;
+                // settings-checklist removed (prefill/settings moved/disabled)
                 case 'settings-outlet': loadOutlets(); break;
                 case 'settings-users': loadUsers(); break;
                 case 'guidelines': /* static, no data loader needed */ break;
@@ -3324,154 +2884,7 @@
             loadPreparation();
         }
 
-        // ==================== CHECKLIST ====================
-        function loadChecklist() {
-            const select = document.getElementById('checklistShift');
-            const waktu = select.value; // pra | during | after
-            const labelWaktu = waktu === 'pra' ? 'Pra Opening' : waktu === 'during' ? 'During' : 'After Closing';
-            const items = JSON.parse(localStorage.getItem('checklistItems') || '[]').filter(i => (i.waktu ? i.waktu === waktu : (i.shift || []).includes(waktu)));
-
-            const today = toYMD(new Date());
-            const todayKey = `${today}_${currentOutlet}_${waktu}`;
-
-            const statusMap = JSON.parse(localStorage.getItem('checklistStatus') || '{}');
-            const correctiveMap = JSON.parse(localStorage.getItem('checklistCorrective') || '{}');
-            const todayStatus = statusMap[todayKey] || {}; // id -> 'ok' | 'not_ok'
-            const todayCorrective = correctiveMap[todayKey] || {}; // id -> text
-
-            // Stats & progress
-            const total = items.length;
-            let ok = 0, notOk = 0, pending = 0;
-            items.forEach(i => {
-                const st = todayStatus[i.id];
-                if (st === 'ok') ok++;
-                else if (st === 'not_ok') {
-                    notOk++;
-                    const cap = (todayCorrective[i.id] || '').trim();
-                    if (!cap) pending++;
-                }
-            });
-            const completed = ok + (notOk - pending);
-            const percent = total ? Math.round((completed / total) * 100) : 0;
-
-            // Update header panel
-            const shiftTimeEl = document.getElementById('clsShiftTime');
-            const progBar = document.getElementById('clsProgressBar');
-            const progLabel = document.getElementById('clsProgressLabel');
-            const statTotal = document.getElementById('clsStatTotal');
-            const statOk = document.getElementById('clsStatOk');
-            const statNotOk = document.getElementById('clsStatNotOk');
-            const statPending = document.getElementById('clsStatPending');
-            if (shiftTimeEl) shiftTimeEl.textContent = labelWaktu;
-            if (progBar) progBar.style.width = percent + '%';
-            if (progLabel) progLabel.textContent = percent + '%';
-            if (statTotal) statTotal.textContent = total;
-            if (statOk) statOk.textContent = ok;
-            if (statNotOk) statNotOk.textContent = notOk;
-            if (statPending) statPending.textContent = pending;
-
-            // Render daftar dalam kategori collapsible
-            const container = document.getElementById('checklistContainer');
-            const categories = [...new Set(items.map(i => i.kategori))];
-            container.innerHTML = categories.map(cat => {
-                const icon = cat === 'kebersihan' ? 'fa-broom' : cat === 'peralatan' ? 'fa-tools' : cat === 'keamanan' ? 'fa-shield-alt' : 'fa-cog';
-                const catItems = items.filter(i => i.kategori === cat);
-                return `
-                <details class="bg-white rounded-xl shadow-sm group" open>
-                    <summary class="cursor-pointer list-none select-none">
-                        <div class="flex items-center justify-between px-4 py-3 bg-gray-50 rounded-t-xl">
-                            <div class="flex items-center gap-2">
-                                <i class="fas ${icon} text-blue-500"></i>
-                                <h3 class="font-semibold text-gray-800 capitalize">${cat}</h3>
-                            </div>
-                            <i class="fas fa-chevron-down text-gray-400 group-open:rotate-180 transition-transform"></i>
-                        </div>
-                    </summary>
-                    <div class="divide-y">
-                        ${catItems.map(i => {
-                            const s = todayStatus[i.id] || '';
-                            const isNotOk = s === 'not_ok';
-                            const corr = todayCorrective[i.id] || '';
-                            return `
-                            <div class="p-4 ${isNotOk ? 'bg-red-50' : ''}">
-                                <p class="${s ? (s === 'ok' ? 'text-gray-700' : 'text-red-700') : 'text-gray-700'}">${i.nama}</p>
-                                <div class="mt-3 ${isViewOnly ? 'pointer-events-none opacity-60' : ''}">
-                                    <label class="block text-xs text-gray-500 mb-1">Status</label>
-                                    <select class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-300" ${isViewOnly ? 'disabled' : ''} onchange="onChecklistSelectChange(${i.id}, this.value)">
-                                        <option value="" ${s ? '' : 'selected'}>Pilih status</option>
-                                        <option value="ok" ${s==='ok' ? 'selected' : ''}>OK</option>
-                                        <option value="not_ok" ${s==='not_ok' ? 'selected' : ''}>Tidak OK</option>
-                                    </select>
-                                </div>
-                                ${isNotOk ? `
-                                <div class="mt-3">
-                                    <label class="block text-xs font-medium text-red-700 mb-1">Tindakan Perbaikan <span class="text-red-500">*</span></label>
-                                    <textarea id="corr-${i.id}" rows="2" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-300" placeholder="Jelaskan tindakan perbaikan..." onblur="saveCorrectiveAction(${i.id}, this.value)">${corr}</textarea>
-                                    <p class="text-xs text-red-500 mt-1" id="corrHint-${i.id}" style="${(corr||'').trim() ? 'display:none' : ''}">Wajib diisi ketika pilih Tidak OK</p>
-                                </div>` : ''}
-                            </div>`;
-                        }).join('')}
-                    </div>
-                </details>`;
-            }).join('');
-        }
-
-        function setChecklistStatus(id, status) {
-            if (isViewOnly) return;
-            const waktu = document.getElementById('checklistShift').value;
-            const today = toYMD(new Date());
-            const todayKey = `${today}_${currentOutlet}_${waktu}`;
-
-            const statusMap = JSON.parse(localStorage.getItem('checklistStatus') || '{}');
-            if (!statusMap[todayKey]) statusMap[todayKey] = {};
-            if (!status) {
-                // Hapus status jika kembali ke 'Pilih status'
-                delete statusMap[todayKey][id];
-            } else {
-                statusMap[todayKey][id] = status;
-            }
-            localStorage.setItem('checklistStatus', JSON.stringify(statusMap));
-
-            // Jika set ke OK, hapus corrective agar tidak tersimpan
-            if (status === 'ok') {
-                const correctiveMap = JSON.parse(localStorage.getItem('checklistCorrective') || '{}');
-                if (correctiveMap[todayKey] && correctiveMap[todayKey][id]) {
-                    delete correctiveMap[todayKey][id];
-                    localStorage.setItem('checklistCorrective', JSON.stringify(correctiveMap));
-                }
-            }
-            if (status) {
-                addActivity('checklist', `Checklist (${waktu}) item diset: ${status === 'ok' ? 'OK' : 'Tidak OK'}`);
-            }
-            loadDashboard();
-            loadChecklist();
-
-            // Focus corrective textarea when selecting Not OK
-            if (status === 'not_ok') {
-                setTimeout(() => {
-                    const ta = document.getElementById(`corr-${id}`);
-                    if (ta) ta.focus();
-                }, 0);
-            }
-        }
-
-        function onChecklistSelectChange(id, value) {
-            // value: '', 'ok', 'not_ok'
-            setChecklistStatus(id, value || '');
-        }
-
-        function saveCorrectiveAction(id, text) {
-            if (isViewOnly) return;
-            const waktu = document.getElementById('checklistShift').value;
-            const today = toYMD(new Date());
-            const todayKey = `${today}_${currentOutlet}_${waktu}`;
-            const correctiveMap = JSON.parse(localStorage.getItem('checklistCorrective') || '{}');
-            if (!correctiveMap[todayKey]) correctiveMap[todayKey] = {};
-            correctiveMap[todayKey][id] = (text || '').trim();
-            localStorage.setItem('checklistCorrective', JSON.stringify(correctiveMap));
-            const hint = document.getElementById(`corrHint-${id}`);
-            if (hint) hint.style.display = (text || '').trim() ? 'none' : 'block';
-        }
+        // Checklist UI removed — related handlers deprecated
 
         // ==================== REJECT ====================
         function loadReject() {
@@ -4352,44 +3765,7 @@
             document.getElementById('fbCapaContainer').classList.add('hidden');
         }
 
-        // ==================== SETTINGS: CHECKLIST ====================
-        function loadChecklistSettings() {
-            const items = JSON.parse(localStorage.getItem('checklistItems') || '[]');
-            const tbody = document.getElementById('checklistSettingTable');
-            tbody.innerHTML = items.map((i, idx) => `
-                <tr>
-                    <td class="px-6 py-4 text-sm text-gray-900 capitalize">${i.kategori}</td>
-                    <td class="px-6 py-4 text-sm text-gray-900">${i.nama}</td>
-                    <td class="px-6 py-4 text-sm text-gray-500">${(i.waktu || (Array.isArray(i.shift) ? i.shift.join(',') : '')).replace('pra','Pra Opening').replace('during','During').replace('after','After Closing')}</td>
-                    <td class="px-6 py-4"><span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700">${i.status}</span></td>
-                    <td class="px-6 py-4 action-column"><button onclick="deleteChecklistItem(${idx})" class="text-red-600 hover:text-red-800 ${isViewOnly ? 'btn-disabled' : ''}"><i class="fas fa-trash"></i></button></td>
-                </tr>
-            `).join('');
-        }
-
-        function saveChecklistSetting() {
-            const items = JSON.parse(localStorage.getItem('checklistItems') || '[]');
-            items.push({
-                id: Date.now(),
-                kategori: document.getElementById('clsKategori').value,
-                nama: document.getElementById('clsNama').value,
-                waktu: document.getElementById('clsWaktu').value,
-                status: 'aktif'
-            });
-            localStorage.setItem('checklistItems', JSON.stringify(items));
-            closeModal('modalChecklistSetting');
-            loadChecklistSettings();
-            showToast('Item checklist berhasil ditambahkan!');
-            clearForm(['clsNama']);
-        }
-
-        function deleteChecklistItem(idx) {
-            if (isViewOnly) return;
-            const items = JSON.parse(localStorage.getItem('checklistItems') || '[]');
-            items.splice(idx, 1);
-            localStorage.setItem('checklistItems', JSON.stringify(items));
-            loadChecklistSettings();
-        }
+        // Checklist settings removed — use Google Forms and central templates
 
         // ==================== SETTINGS: OUTLET ====================
         function loadOutlets() {
@@ -4564,201 +3940,7 @@
             showToast('Menguji koneksi...');
         }
 
-        // ==================== EXPORT CHECKLIST PDF ====================
-        // Template IDs untuk setiap waktu checklist
-        const CHECKLIST_TEMPLATES = {
-            'pra': '1hYRZYA03wJDq8BEjetaLvYJfQl9BEHETa77Xpn5yFGA',      // Pra Opening
-            'during': '1hYRZYA03wJDq8BEjetaLvYJfQl9BEHETa77Xpn5yFGA',  // During Opening
-            'after': '1ctJZ40N2Q9-erLTT71HvUoH3myoBUTzoZLdA_wfaPWo'    // After Closing
-        };
-
-        function exportChecklistPDF() {
-            const waktu = document.getElementById('checklistShift').value; // pra|during|after
-            const items = JSON.parse(localStorage.getItem('checklistItems') || '[]').filter(i => i.waktu === waktu);
-            const today = toYMD(new Date());
-            const todayKey = `${today}_${currentOutlet}_${waktu}`;
-            const statusMap = JSON.parse(localStorage.getItem('checklistStatus') || '{}')[todayKey] || {};
-            const correctiveMap = JSON.parse(localStorage.getItem('checklistCorrective') || '{}')[todayKey] || {};
-            const outlets = JSON.parse(localStorage.getItem('outlets') || '[]');
-            const outlet = outlets.find(o => o.id === currentOutlet);
-            const labelWaktu = waktu === 'pra' ? 'Pra Opening' : waktu === 'during' ? 'During Opening' : 'After Closing';
-
-            // Gunakan template Google Docs jika tersedia
-            const templateId = CHECKLIST_TEMPLATES[waktu];
-            if (templateId) {
-                exportChecklistWithGoogleTemplate(templateId, items, statusMap, correctiveMap, outlet, today, labelWaktu, waktu);
-            } else {
-                // Fallback ke PDF biasa jika template tidak ada
-                exportChecklistPDFFallback(items, statusMap, correctiveMap, outlet, today, labelWaktu, waktu);
-            }
-        }
-
-        function exportChecklistWithGoogleTemplate(templateId, items, statusMap, correctiveMap, outlet, today, labelWaktu, waktu) {
-            // Ambil Web App URL dari config
-            const config = JSON.parse(localStorage.getItem('spreadsheetConfig') || '{}');
-            const webAppUrl = config.webAppUrl;
-            
-            if (!webAppUrl) {
-                showToast('⚠️ Web App URL belum dikonfigurasi. Gunakan PDF biasa.');
-                exportChecklistPDFFallback(items, statusMap, correctiveMap, outlet, today, labelWaktu, waktu);
-                return;
-            }
-            
-            // Siapkan payload untuk Google Apps Script
-            const payload = {
-                action: 'exportChecklistToPdf',
-                waktu: waktu,
-                outlet: outlet,
-                items: items,
-                statusMap: statusMap,
-                correctiveMap: correctiveMap,
-                today: today
-            };
-            
-            // Tampilkan loading
-            showToast('📄 Sedang membuat PDF dengan template...');
-            
-            // Kirim ke Google Apps Script dengan fetch POST
-            fetch(webAppUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            })
-            .then(response => {
-                // Response adalah PDF blob
-                if (response.ok) {
-                    return response.blob();
-                } else {
-                    return response.text().then(text => {
-                        throw new Error('HTTP ' + response.status + ': ' + text);
-                    });
-                }
-            })
-            .then(blob => {
-                const filename = `Checklist_${labelWaktu}_${(outlet ? outlet.nama.replace(/\s+/g,'_') : 'Outlet')}_${today}.pdf`;
-                // Convert blob to data URL for persistent storage and then save metadata
-                const reader = new FileReader();
-                reader.onload = async function() {
-                    const dataUrl = reader.result; // base64 data URL
-                    // Attempt to save to Google Drive via Web App if configured
-                    let driveUrl = null;
-                    try {
-                        const saved = await savePdfToDriveViaWebApp(dataUrl, filename);
-                        if (saved && saved.fileUrl) driveUrl = saved.fileUrl;
-                    } catch (err) {
-                        console.warn('Save to Drive failed:', err);
-                    }
-
-                    // Save submission metadata + prefer driveUrl if available
-                    const submissions = JSON.parse(localStorage.getItem('checklistSubmissions') || '[]');
-                    submissions.unshift({
-                        day: toYMD(new Date()),
-                        timestamp: new Date().toISOString(),
-                        outlet: outlet ? outlet.nama : '-',
-                        executor: (currentUser && (currentUser.nama || currentUser.username)) || '-',
-                        waktu: labelWaktu,
-                        filename: filename,
-                        fileUrl: driveUrl || null,
-                        dataUrl: driveUrl ? null : dataUrl
-                    });
-                    // Keep recent 500 entries
-                    localStorage.setItem('checklistSubmissions', JSON.stringify(submissions.slice(0, 500)));
-                    renderChecklistSubmissions();
-
-                    // Trigger download
-                    const url = URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = filename;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    URL.revokeObjectURL(url);
-                    showToast(driveUrl ? '✅ PDF disimpan ke Drive dan diunduh.' : '✅ PDF berhasil diunduh dan disimpan sebagai bukti lokal.');
-                };
-                reader.onerror = function(err) {
-                    console.error('Failed to read blob as data URL', err);
-                    // fallback: still download
-                    const url = URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = filename;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    URL.revokeObjectURL(url);
-                    showToast('✅ PDF berhasil diunduh! (gagal menyimpan bukti)');
-                };
-                reader.readAsDataURL(blob);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showToast('⚠️ Gagal membuat PDF: ' + error.message + '. Gunakan PDF biasa.');
-                // Fallback ke PDF biasa
-                exportChecklistPDFFallback(items, statusMap, correctiveMap, outlet, today, labelWaktu, waktu);
-            });
-        }
-
-        function exportChecklistPDFWithTemplate(items, statusMap, correctiveMap, outlet, today, labelWaktu, waktu, templateId) {
-            // Fungsi ini bisa digunakan untuk preview atau fallback jika GAS tidak tersedia
-            // Saat ini semua proses dilakukan di Google Apps Script
-            showToast('Fitur auto-fill sudah dipindahkan ke Google Apps Script untuk hasil yang lebih baik.');
-        }
-
-        function exportChecklistPDFFallback(items, statusMap, correctiveMap, outlet, today, labelWaktu, waktu) {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-            const pageWidth = doc.internal.pageSize.getWidth();
-            const pageHeight = doc.internal.pageSize.getHeight();
-            const margin = 10;
-            const availableWidth = pageWidth - (2 * margin);
-
-            doc.setFontSize(14);
-            doc.text(`Checklist Operasional - ${outlet ? outlet.nama : ''}`, margin, 15);
-            doc.setFontSize(9);
-            doc.text(`Tanggal: ${new Date().toLocaleDateString('id-ID')} | Waktu: ${labelWaktu}`, margin, 22);
-
-            // Hitung lebar kolom proporsional
-            const colWidths = [
-                availableWidth * 0.15,  // Kategori: 15%
-                availableWidth * 0.40,  // Item: 40%
-                availableWidth * 0.15,  // Status: 15%
-                availableWidth * 0.30   // Tindakan: 30%
-            ];
-
-            const rows = items.map(i => {
-                const st = statusMap[i.id] || '';
-                const corr = (correctiveMap[i.id] || '').trim();
-                return [i.kategori, i.nama, st === 'ok' ? 'OK' : st === 'not_ok' ? 'Tidak OK' : '-', st === 'not_ok' ? (corr || '-') : '-'];
-            });
-
-            doc.autoTable({
-                startY: 30,
-                head: [['Kategori', 'Item', 'Status', 'Tindakan Perbaikan']],
-                body: rows.length ? rows : [['-', '-', '-', '-']],
-                margin: margin,
-                columnStyles: {
-                    0: { cellWidth: colWidths[0], halign: 'left', fontSize: 8 },
-                    1: { cellWidth: colWidths[1], halign: 'left', fontSize: 8 },
-                    2: { cellWidth: colWidths[2], halign: 'center', fontSize: 8 },
-                    3: { cellWidth: colWidths[3], halign: 'left', fontSize: 7 }
-                },
-                headStyles: { fillColor: [16, 185, 129], textColor: 255, fontSize: 9, fontStyle: 'bold' },
-                bodyStyles: { fontSize: 8 },
-                didDrawPage: (data) => {
-                    // Footer
-                    doc.setFontSize(8);
-                    doc.setTextColor(150);
-                    doc.text(`Halaman ${data.pageNumber} dari ${doc.lastAutoTable.pageCount || 1}`, margin, pageHeight - 5);
-                }
-            });
-
-            const filename = `Checklist_${labelWaktu}_${(outlet ? outlet.nama.replace(/\s+/g,'_') : 'Outlet')}_${today}.pdf`;
-            doc.save(filename);
-            showToast(`✅ PDF berhasil diunduh: ${filename}`);
-        }
+        // Checklist export & template functions removed — exports use Google Forms / Apps Script now
 
         // ==================== HELPER FUNCTIONS ====================
         // Parse 'YYYY-MM-DD' as a local date to avoid timezone shifts
@@ -4798,141 +3980,7 @@
             localStorage.setItem('activities', JSON.stringify(activities.slice(-100)));
         }
 
-        // ==================== CHECKLIST SUBMISSIONS (RIWAYAT) ====================
-        function renderChecklistSubmissions() {
-            const tbody = document.getElementById('checklistSubmissionsTbody');
-            if (!tbody) return;
-            const all = JSON.parse(localStorage.getItem('checklistSubmissions') || '[]');
-            const dateFilter = document.getElementById('submissionsDateFilter').value;
-            const filtered = dateFilter ? all.filter(s => s.day === dateFilter) : all;
-            if (!filtered.length) {
-                tbody.innerHTML = `<tr><td class="px-4 py-3" colspan="7">Belum ada data pengisian checklist.</td></tr>`;
-                return;
-            }
-            tbody.innerHTML = filtered.map((s) => {
-                const origIndex = all.findIndex(a => a.timestamp === s.timestamp && a.filename === s.filename);
-                return `
-                <tr>
-                    <td class="px-4 py-3">${formatDate(s.day)}</td>
-                    <td class="px-4 py-3">${new Date(s.timestamp).toLocaleString('id-ID')}</td>
-                    <td class="px-4 py-3">${s.outlet || '-'}</td>
-                    <td class="px-4 py-3">${s.executor || '-'}</td>
-                    <td class="px-4 py-3">${s.waktu || '-'}</td>
-                    <td class="px-4 py-3">
-                        ${s.fileUrl ? `<a class="text-blue-600 hover:underline" href="${s.fileUrl}" target="_blank">Lihat di Drive</a>` : `<a class="text-blue-600 hover:underline" href="${s.dataUrl}" download="${s.filename}" target="_blank">Unduh PDF</a>`}
-                    </td>
-                    <td class="px-4 py-3"><button class="px-2 py-1 bg-red-100 text-red-700 rounded" onclick="deleteChecklistSubmission(${origIndex})">Hapus</button></td>
-                </tr>
-                `;
-            }).join('');
-        }
-
-        function deleteChecklistSubmission(index) {
-            const all = JSON.parse(localStorage.getItem('checklistSubmissions') || '[]');
-            if (index < 0 || index >= all.length) return;
-            all.splice(index, 1);
-            localStorage.setItem('checklistSubmissions', JSON.stringify(all));
-            renderChecklistSubmissions();
-            showToast('Item riwayat dihapus');
-        }
-
-        function clearChecklistFilter() {
-            document.getElementById('submissionsDateFilter').value = '';
-            renderChecklistSubmissions();
-        }
-
-        function loadFormPrefillSettings() {
-            const cfg = JSON.parse(localStorage.getItem('formPrefill') || '{}');
-            // pra
-            document.getElementById('prefill_pra_outlet').value = (cfg.pra && cfg.pra.outlet) || '';
-            document.getElementById('prefill_pra_executor').value = (cfg.pra && cfg.pra.executor) || '';
-            document.getElementById('prefill_pra_date').value = (cfg.pra && cfg.pra.date) || '';
-            // during
-            document.getElementById('prefill_during_outlet').value = (cfg.during && cfg.during.outlet) || '';
-            document.getElementById('prefill_during_executor').value = (cfg.during && cfg.during.executor) || '';
-            document.getElementById('prefill_during_date').value = (cfg.during && cfg.during.date) || '';
-            // after
-            document.getElementById('prefill_after_outlet').value = (cfg.after && cfg.after.outlet) || '';
-            document.getElementById('prefill_after_executor').value = (cfg.after && cfg.after.executor) || '';
-            document.getElementById('prefill_after_date').value = (cfg.after && cfg.after.date) || '';
-            showToast('Pengaturan prefill dimuat');
-        }
-
-        function saveFormPrefillSettings() {
-            const cfg = {
-                pra: {
-                    outlet: document.getElementById('prefill_pra_outlet').value.trim(),
-                    executor: document.getElementById('prefill_pra_executor').value.trim(),
-                    date: document.getElementById('prefill_pra_date').value.trim()
-                },
-                during: {
-                    outlet: document.getElementById('prefill_during_outlet').value.trim(),
-                    executor: document.getElementById('prefill_during_executor').value.trim(),
-                    date: document.getElementById('prefill_during_date').value.trim()
-                },
-                after: {
-                    outlet: document.getElementById('prefill_after_outlet').value.trim(),
-                    executor: document.getElementById('prefill_after_executor').value.trim(),
-                    date: document.getElementById('prefill_after_date').value.trim()
-                }
-            };
-            localStorage.setItem('formPrefill', JSON.stringify(cfg));
-            showToast('Pengaturan prefill tersimpan');
-        }
-
-        // Build prefilled Google Form URL using optional mappings in localStorage
-        function buildPrefillUrl(formType, baseUrl) {
-            // formType: 'pra' | 'during' | 'after'
-            // Expect localStorage.formPrefill to be an object like:
-            // { pra: { outlet: 'entry.123', executor: 'entry.456', date: 'entry.789', waktu: 'entry.101' }, ... }
-            const cfg = JSON.parse(localStorage.getItem('formPrefill') || '{}');
-            const map = cfg[formType] || {};
-            if (!map || Object.keys(map).length === 0) return baseUrl;
-            const params = [];
-            const outlets = JSON.parse(localStorage.getItem('outlets') || '[]');
-            const outlet = outlets.find(o => o.id === currentOutlet);
-            const executor = (currentUser && (currentUser.nama || currentUser.username)) || '';
-            const today = toYMD(new Date());
-            if (map.outlet) params.push(`${encodeURIComponent(map.outlet)}=${encodeURIComponent(outlet ? outlet.nama : '')}`);
-            if (map.executor) params.push(`${encodeURIComponent(map.executor)}=${encodeURIComponent(executor)}`);
-            if (map.date) params.push(`${encodeURIComponent(map.date)}=${encodeURIComponent(today)}`);
-            if (map.waktu) params.push(`${encodeURIComponent(map.waktu)}=${encodeURIComponent(formType)}`);
-            if (!params.length) return baseUrl;
-            // If baseUrl already contains ?, append with &
-            return baseUrl + (baseUrl.includes('?') ? '&' : '?') + params.join('&');
-        }
-
-        function openPrefilledForm(formType, ev) {
-            ev = ev || window.event;
-            if (ev) ev.preventDefault();
-            let baseUrl = '';
-            if (formType === 'pra') baseUrl = document.getElementById('btnFormPra').getAttribute('href');
-            else if (formType === 'during') baseUrl = document.getElementById('btnFormDuring').getAttribute('href');
-            else baseUrl = document.getElementById('btnFormAfter').getAttribute('href');
-            const url = buildPrefillUrl(formType, baseUrl);
-            window.open(url, '_blank', 'noopener');
-        }
-
-        // Send base64 dataUrl to the configured Web App to save into Drive.
-        // Expects the Web App doPost to handle { action: 'saveChecklistPdf', filename, dataUrl }
-        async function savePdfToDriveViaWebApp(dataUrl, filename) {
-            const config = JSON.parse(localStorage.getItem('spreadsheetConfig') || '{}');
-            const webAppUrl = config.webAppUrl;
-            if (!webAppUrl) throw new Error('Web App URL belum dikonfigurasi');
-            const payload = { action: 'saveChecklistPdf', filename, dataUrl };
-            const resp = await fetch(webAppUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            if (!resp.ok) {
-                const txt = await resp.text();
-                throw new Error('HTTP ' + resp.status + ': ' + txt);
-            }
-            const json = await resp.json().catch(() => null);
-            if (!json) throw new Error('Invalid JSON response from Web App');
-            return json; // expect { success: true, fileUrl: 'https://...' }
-        }
+        // Checklist submissions, prefill helpers and Drive-save helpers removed
 
         function clearForm(fields) {
             fields.forEach(id => {
