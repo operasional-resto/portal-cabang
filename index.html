@@ -1870,26 +1870,38 @@
 
         // ==================== MAIN APP ====================
         function showMainApp() {
-            document.getElementById('loginModal').classList.add('hidden');
-            document.getElementById('mainApp').classList.remove('hidden');
-            
-            document.getElementById('userName').textContent = currentUser.nama;
-            document.getElementById('userRole').textContent = getRoleName(currentUser.role);
-            
+            const loginModalEl = document.getElementById('loginModal');
+            if (loginModalEl) loginModalEl.classList.add('hidden');
+
+            const mainAppEl = document.getElementById('mainApp');
+            if (!mainAppEl) {
+                console.warn('showMainApp: #mainApp element not found — skipping UI activation');
+                return;
+            }
+            mainAppEl.classList.remove('hidden');
+
+            const userNameEl = document.getElementById('userName');
+            if (userNameEl) userNameEl.textContent = currentUser.nama;
+
+            const userRoleEl = document.getElementById('userRole');
+            if (userRoleEl) userRoleEl.textContent = getRoleName(currentUser.role);
+
             // Set access mode label (use roleDescriptions for detailed text)
             const accessLabel = document.getElementById('accessModeLabel');
-            accessLabel.textContent = roleDescriptions[currentUser.role] || 'Mode Akses';
-            
+            if (accessLabel) accessLabel.textContent = roleDescriptions[currentUser.role] || 'Mode Akses';
+
             // Set access badge
             const accessBadge = document.getElementById('accessBadge');
-            if (isViewOnly) {
-                accessBadge.textContent = 'VIEW ONLY';
-                accessBadge.className = 'px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700';
-            } else {
-                accessBadge.textContent = 'DAPAT MENGUBAH';
-                accessBadge.className = 'px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700';
+            if (accessBadge) {
+                if (isViewOnly) {
+                    accessBadge.textContent = 'VIEW ONLY';
+                    accessBadge.className = 'px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700';
+                } else {
+                    accessBadge.textContent = 'DAPAT MENGUBAH';
+                    accessBadge.className = 'px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700';
+                }
             }
-            
+
             populateOutletSelector();
             applyRolePermissions();
             applyViewOnlyMode();
