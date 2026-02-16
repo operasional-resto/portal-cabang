@@ -216,8 +216,18 @@
                     <div class="flex items-center gap-4">
                         <select id="activeOutletSelect" class="px-4 py-2 border rounded-lg" onchange="onOutletChange()"></select>
                         <div id="multiOutletSelector" class="hidden flex items-center gap-2">
-                            <button id="multiOutletBtn" class="px-3 py-2 border rounded-lg">Multi-Outlet</button>
-                            <div id="multiOutletOptions" class="hidden absolute mt-2 bg-white border shadow-lg rounded-lg p-3 z-50"></div>
+                            <button id="multiOutletBtn" onclick="toggleMultiOutletPanel()" class="px-3 py-2 border rounded-lg bg-blue-50 hover:bg-blue-100">Multi-Outlet</button>
+                            <div id="multiOutletOptions" class="hidden absolute mt-2 bg-white border shadow-lg rounded-lg p-4 z-50 min-w-64">
+                                <div class="mb-3 flex gap-2">
+                                    <button onclick="selectAllOutlets()" class="flex-1 px-2 py-1 text-xs bg-green-100 hover:bg-green-200 text-green-700 rounded">Pilih Semua</button>
+                                    <button onclick="deselectAllOutlets()" class="flex-1 px-2 py-1 text-xs bg-red-100 hover:bg-red-200 text-red-700 rounded">Batal Semua</button>
+                                </div>
+                                <div id="multiOutletCheckboxes" class="space-y-2 max-h-64 overflow-y-auto"></div>
+                                <div class="mt-3 flex gap-2">
+                                    <button onclick="applySelectedOutlets()" class="flex-1 px-3 py-2 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded">Terapkan</button>
+                                    <button onclick="toggleMultiOutletPanel()" class="flex-1 px-3 py-2 text-xs bg-gray-300 hover:bg-gray-400 rounded">Tutup</button>
+                                </div>
+                            </div>
                         </div>
                         <div id="accessBadge" class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">VIEW ONLY</div>
                         <div class="text-sm">
@@ -2003,7 +2013,7 @@
             const select = document.getElementById('activeOutletSelect');
             const multiWrap = document.getElementById('multiOutletSelector');
             const multiBtn = document.getElementById('multiOutletBtn');
-            const optionsBox = document.getElementById('multiOutletOptions');
+            const checkboxContainer = document.getElementById('multiOutletCheckboxes');
             const outletsRaw = JSON.parse(localStorage.getItem('outlets') || '[]');
             // Dedupe outlets by normalized name to avoid duplicate display entries
             const normalize = s => (s || '').toString().trim().toLowerCase();
@@ -2021,9 +2031,9 @@
                 if (select) select.classList.add('hidden');
 
                 // Build options (checkboxes)
-                if (optionsBox) {
+                if (checkboxContainer) {
                     const list = outlets.filter(o => allowedOutlets.includes(o.id));
-                    optionsBox.innerHTML = list.map(o => {
+                    checkboxContainer.innerHTML = list.map(o => {
                         const checked = !selectedOutlets || selectedOutlets.includes(o.id) ? 'checked' : '';
                         return `<label class="flex items-center gap-2 p-2 rounded hover:bg-gray-50">
                             <input type="checkbox" class="outlet-check" value="${o.id}" ${checked}>
@@ -2070,8 +2080,12 @@
             }
         }
 
+        function onOutletChange() {
+            changeActiveOutlet();
+        }
+
         function toggleMultiOutletPanel() {
-            const panel = document.getElementById('multiOutletPanel');
+            const panel = document.getElementById('multiOutletOptions');
             if (!panel) return;
             panel.classList.toggle('hidden');
 
@@ -2091,17 +2105,17 @@
         }
 
         function selectAllOutlets() {
-            const checks = document.querySelectorAll('#multiOutletOptions .outlet-check');
+            const checks = document.querySelectorAll('#multiOutletCheckboxes .outlet-check');
             checks.forEach(c => c.checked = true);
         }
 
         function deselectAllOutlets() {
-            const checks = document.querySelectorAll('#multiOutletOptions .outlet-check');
+            const checks = document.querySelectorAll('#multiOutletCheckboxes .outlet-check');
             checks.forEach(c => c.checked = false);
         }
 
         function applySelectedOutlets() {
-            const checks = document.querySelectorAll('#multiOutletOptions .outlet-check');
+            const checks = document.querySelectorAll('#multiOutletCheckboxes .outlet-check');
             const sel = Array.from(checks).filter(c => c.checked).map(c => c.value);
             selectedOutlets = sel.length ? sel : [...allowedOutlets];
 
@@ -2110,6 +2124,10 @@
                 const key = `selectedOutlets.${currentUser.role}.${currentUser.kode}`;
                 localStorage.setItem(key, JSON.stringify(selectedOutlets));
             } catch (e) {}
+
+            // Update button label and close panel
+            populateOutletSelector();
+            toggleMultiOutletPanel();
 
             // Ensure legacy currentOutlet stays within selection for single-outlet modules
             if (selectedOutlets && selectedOutlets.length) {
