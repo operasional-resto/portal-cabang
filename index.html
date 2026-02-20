@@ -102,6 +102,9 @@
     </style>
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+    <script src="database.js"></script>
+    <script src="sync-utility.js"></script>
+    <script src="spreadsheet-functions.js"></script>
 </head>
 <body class="bg-gray-100">
     <!-- Login Modal -->
@@ -254,8 +257,18 @@
                             </div>
                         </div>
                         
-                        <!-- User Info -->
                         <div class="flex items-center gap-2 ml-2">
+                            <!-- Database Status Indicator -->
+                            <div id="dbStatus" class="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                                <i class="fas fa-database"></i>
+                                <span id="dbStatusText">Offline</span>
+                            </div>
+                            
+                            <!-- Manual Sync Button -->
+                            <button id="syncBtn" onclick="manualSync()" class="p-1 hover:bg-gray-200 rounded" title="Sync Data">
+                                <i class="fas fa-sync-alt text-gray-600"></i>
+                            </button>
+                            
                             <div id="accessBadge" class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">EDIT</div>
                             <div class="text-sm">
                                 <div class="font-semibold text-gray-700 text-xs" id="userName">User</div>
@@ -540,8 +553,11 @@
             <section id="module-checklist" class="module-section p-4 lg:p-8 fade-in">
                 <div class="flex items-center justify-between mb-6">
                     <h2 class="text-2xl font-bold text-gray-800">Checklist Operasional</h2>
+                    <button onclick="loadChecklistData()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all">
+                        <i class="fas fa-sync-alt mr-2"></i>Refresh Data
+                    </button>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 shadow-sm border border-blue-200">
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="font-bold text-blue-900"><i class="fas fa-sunrise text-blue-600 mr-2"></i>Pra Opening</h3>
@@ -573,6 +589,37 @@
                         <a href="https://docs.google.com/forms/d/e/1FAIpQLSdfo2gHQyo0BWLC8xIhQzvjUk6NHZi-wUSnk8R2QpibbeT-Pg/viewform?usp=sharing&ouid=116965073150857505198" target="_blank" class="w-full inline-block text-center bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-all">
                             <i class="fas fa-external-link-alt mr-2"></i>Buka Form
                         </a>
+                    </div>
+                </div>
+
+                <!-- Data Checklist -->
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                    <div class="p-4 border-b flex items-center justify-between gap-4 flex-wrap">
+                        <h3 class="font-bold text-gray-800"><i class="fas fa-list-check text-blue-500 mr-2"></i>Riwayat Checklist</h3>
+                        <div class="flex items-center gap-2">
+                            <input type="date" id="checklistDateFilter" class="px-3 py-2 border rounded-lg text-sm" onchange="loadChecklistData()">
+                            <select id="checklistTypeFilter" class="px-3 py-2 border rounded-lg text-sm" onchange="loadChecklistData()">
+                                <option value="">Semua Tipe</option>
+                                <option value="pra">Pra Opening</option>
+                                <option value="during">During</option>
+                                <option value="after">After Closing</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tanggal</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipe</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Outlet</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">PIC</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="checklistDataTable" class="divide-y divide-gray-200"></tbody>
+                        </table>
                     </div>
                 </div>
             </section>
@@ -859,8 +906,14 @@
                 <div class="bg-white rounded-xl shadow-sm p-6">
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Spreadsheet ID</label>
-                            <input type="text" id="spreadsheetId" placeholder="Masukkan Spreadsheet ID" class="w-full px-4 py-3 border rounded-lg">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Spreadsheet ID (Data Aplikasi)</label>
+                            <input type="text" id="spreadsheetId" placeholder="Masukkan Spreadsheet ID untuk data aplikasi" class="w-full px-4 py-3 border rounded-lg">
+                            <p class="text-xs text-gray-500 mt-1">Untuk data outlet, jadwal, tugas, preparation, dll.</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Spreadsheet ID Checklist</label>
+                            <input type="text" id="checklistSpreadsheetId" placeholder="Masukkan Spreadsheet ID untuk checklist operasional" class="w-full px-4 py-3 border rounded-lg">
+                            <p class="text-xs text-gray-500 mt-1">Untuk data hasil checklist operasional dari Google Forms</p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">API Key</label>
@@ -882,9 +935,10 @@
                     <div class="mt-6 p-4 bg-blue-50 rounded-lg">
                         <h4 class="font-medium text-blue-800 mb-2"><i class="fas fa-info-circle mr-2"></i>Panduan Integrasi</h4>
                         <ol class="text-sm text-blue-700 space-y-1 list-decimal ml-4">
-                            <li>Buat Google Spreadsheet baru dengan sheet: Jadwal, Tugas, Checklist, Inventori, LogBook, Feedback, Reject</li>
-                            <li>Buat Google Apps Script dan deploy sebagai Web App</li>
-                            <li>Copy Spreadsheet ID dan Web App URL ke form di atas</li>
+                            <li><strong>Spreadsheet ID (Data Aplikasi):</strong> Buat Google Spreadsheet dengan sheet: Jadwal, Tugas, Inventori, LogBook, Feedback, Reject</li>
+                            <li><strong>Spreadsheet ID Checklist:</strong> Gunakan Spreadsheet ID dari hasil Google Forms checklist operasional Anda</li>
+                            <li>Buat Google Apps Script dan deploy sebagai Web App (untuk data aplikasi)</li>
+                            <li>Copy kedua Spreadsheet ID, API Key, dan Web App URL ke form di atas</li>
                             <li>Test koneksi untuk memastikan berhasil</li>
                         </ol>
                     </div>
@@ -1387,6 +1441,128 @@
     </div>
 
     <script>
+        // ==================== DATABASE INITIALIZATION ====================
+        let dbManager = null;
+        let syncUtility = null;
+
+        // Initialize database system
+        async function initDatabase() {
+            try {
+                dbManager = new DatabaseManager();
+                const success = await dbManager.init();
+                
+                if (success) {
+                    syncUtility = new DataSyncUtility(dbManager);
+                    syncUtility.startAutoSync(5); // Auto sync every 5 minutes
+                    console.log('Database system initialized successfully');
+                    updateDatabaseStatus(true);
+                    return true;
+                } else {
+                    console.error('Database initialization failed');
+                    updateDatabaseStatus(false);
+                    return false;
+                }
+            } catch (error) {
+                console.error('Database initialization error:', error);
+                updateDatabaseStatus(false);
+                return false;
+            }
+        }
+
+        // Update database status indicator
+        function updateDatabaseStatus(isOnline) {
+            const statusEl = document.getElementById('dbStatus');
+            const statusTextEl = document.getElementById('dbStatusText');
+            
+            if (!statusEl || !statusTextEl) return;
+            
+            if (isOnline) {
+                statusEl.className = 'flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-600';
+                statusTextEl.textContent = 'Online';
+            } else {
+                statusEl.className = 'flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600';
+                statusTextEl.textContent = 'Offline';
+            }
+        }
+
+        // Manual sync function
+        async function manualSync() {
+            if (!syncUtility) {
+                showToast('Sistem sync belum siap');
+                return;
+            }
+            
+            try {
+                showToast('Memulai sinkronisasi...');
+                await syncUtility.manualSync();
+                showToast('Sinkronisasi berhasil!');
+            } catch (error) {
+                console.error('Manual sync failed:', error);
+                showToast('Sinkronisasi gagal: ' + error.message);
+            }
+        }
+
+        // Enhanced data operations using database manager
+        async function saveData(tableName, data) {
+            try {
+                if (dbManager) {
+                    return await dbManager.save(tableName, data);
+                } else {
+                    // Fallback to localStorage
+                    const existing = JSON.parse(localStorage.getItem(tableName) || '[]');
+                    if (!data.id) data.id = Date.now().toString();
+                    existing.push(data);
+                    localStorage.setItem(tableName, JSON.stringify(existing));
+                    return data;
+                }
+            } catch (error) {
+                console.error('Save data failed:', error);
+                throw error;
+            }
+        }
+
+        async function loadData(tableName, filters = {}) {
+            try {
+                if (dbManager) {
+                    return await dbManager.getAll(tableName, filters);
+                } else {
+                    // Fallback to localStorage
+                    let data = JSON.parse(localStorage.getItem(tableName) || '[]');
+                    
+                    // Apply filters
+                    if (Object.keys(filters).length > 0) {
+                        data = data.filter(item => {
+                            return Object.entries(filters).every(([key, value]) => {
+                                return item[key] === value;
+                            });
+                        });
+                    }
+                    
+                    return data;
+                }
+            } catch (error) {
+                console.error('Load data failed:', error);
+                return JSON.parse(localStorage.getItem(tableName) || '[]');
+            }
+        }
+
+        async function deleteData(tableName, id) {
+            try {
+                if (dbManager) {
+                    return await dbManager.delete(tableName, id);
+                } else {
+                    // Fallback to localStorage
+                    let data = JSON.parse(localStorage.getItem(tableName) || '[]');
+                    data = data.filter(item => item.id !== id);
+                    localStorage.setItem(tableName, JSON.stringify(data));
+                    return true;
+                }
+            } catch (error) {
+                console.error('Delete data failed:', error);
+                throw error;
+            }
+        }
+
         // ==================== USER DATABASE ====================
         const userDatabase = {
             'admin': [
@@ -1433,11 +1609,11 @@
 
         // Role Permissions
         const rolePermissions = {
-            'admin': ['dashboard', 'jadwal-kerja', 'tugas-harian', 'preparation', 'reject', 'inventori', 'logbook', 'feedback', 'settings-outlet', 'settings-users', 'spreadsheet', 'guidelines'],
-            'head-office': ['dashboard', 'jadwal-kerja', 'tugas-harian', 'preparation', 'reject', 'inventori', 'logbook', 'feedback'],
-            'area-manager': ['dashboard', 'jadwal-kerja', 'tugas-harian', 'preparation', 'reject', 'inventori', 'logbook', 'feedback'],
-            'kepala-cabang': ['dashboard', 'jadwal-kerja', 'tugas-harian', 'preparation', 'reject', 'inventori', 'logbook', 'feedback'],
-            'outlet': ['dashboard', 'jadwal-kerja', 'tugas-harian', 'preparation', 'reject', 'inventori', 'logbook', 'feedback']
+            'admin': ['dashboard', 'jadwal-kerja', 'tugas-harian', 'preparation', 'checklist', 'reject', 'inventori', 'logbook', 'feedback', 'settings-outlet', 'settings-users', 'spreadsheet', 'guidelines'],
+            'head-office': ['dashboard', 'jadwal-kerja', 'tugas-harian', 'preparation', 'checklist', 'reject', 'inventori', 'logbook', 'feedback'],
+            'area-manager': ['dashboard', 'jadwal-kerja', 'tugas-harian', 'preparation', 'checklist', 'reject', 'inventori', 'logbook', 'feedback'],
+            'kepala-cabang': ['dashboard', 'jadwal-kerja', 'tugas-harian', 'preparation', 'checklist', 'reject', 'inventori', 'logbook', 'feedback'],
+            'outlet': ['dashboard', 'jadwal-kerja', 'tugas-harian', 'preparation', 'checklist', 'reject', 'inventori', 'logbook', 'feedback']
         };
 
         // ==================== INITIALIZATION ====================
@@ -1478,6 +1654,17 @@
             initDefaultData();
             mergeUserDatabase();
             cleanupDefaultOutlets();
+
+            // Initialize database system
+            initDatabase().then(success => {
+                if (success) {
+                    console.log('Database ready');
+                    updateDatabaseStatus(true);
+                } else {
+                    console.warn('Database initialization failed, using localStorage fallback');
+                    updateDatabaseStatus(false);
+                }
+            });
 
             const savedUser = localStorage.getItem('currentUser');
             if (savedUser) {
@@ -2365,12 +2552,12 @@
                 case 'jadwal-kerja': loadJadwal(); updateSchedulePeriodLabel(); break;
                 case 'tugas-harian': loadTugas(); break;
                 case 'preparation': loadPreparation(); break;
-                case 'checklist': /* Google Forms module - no data to load */ break;
+                case 'checklist': loadChecklistData(); break;
                 case 'reject': loadReject(); break;
                 case 'inventori': loadInventori(); break;
                 case 'logbook': loadLogbook(); break;
                 case 'feedback': loadFeedback(); break;
-                // settings-checklist removed (prefill/settings moved/disabled)
+                case 'spreadsheet': loadSpreadsheetModule(); break;
                 case 'settings-outlet': loadOutlets(); break;
                 case 'settings-users': loadUsers(); break;
                 case 'guidelines': /* static, no data loader needed */ break;
@@ -3095,6 +3282,63 @@
         }
 
         // Checklist UI removed — related handlers deprecated
+
+        // ==================== CHECKLIST DATA ====================
+        async function loadChecklistData() {
+            const tbody = document.getElementById('checklistDataTable');
+            tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-spinner fa-spin mr-2"></i>Memuat data...</td></tr>';
+            
+            try {
+                const apiKey = localStorage.getItem('apiKey');
+                const checklistSpreadsheetId = localStorage.getItem('checklistSpreadsheetId') || '1NjWDgL18Oz-t6PyuovpSliWqPyTC58QyH_gP4sHJ134';
+                
+                if (!apiKey) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-red-500">API Key belum dikonfigurasi. Silakan ke menu Koneksi API.</td></tr>';
+                    return;
+                }
+
+                const dateFilter = (document.getElementById('checklistDateFilter')?.value || '').trim();
+                const typeFilter = (document.getElementById('checklistTypeFilter')?.value || '').trim();
+                const outlets = JSON.parse(localStorage.getItem('outlets') || '[]');
+                let allData = [];
+                const types = typeFilter ? [typeFilter] : ['pra', 'during', 'after'];
+                const CHECKLIST_SHEETS = { pra: 'Operasional', during: 'Operasional', after: 'Closing' };
+                
+                for (const type of types) {
+                    const sheetName = CHECKLIST_SHEETS[type];
+                    const url = `https://sheets.googleapis.com/v4/spreadsheets/${checklistSpreadsheetId}/values/${sheetName}?key=${apiKey}`;
+                    const response = await fetch(url);
+                    if (!response.ok) continue;
+                    const result = await response.json();
+                    const rows = result.values || [];
+                    if (rows.length > 1) {
+                        for (let i = 1; i < rows.length; i++) {
+                            const row = rows[i];
+                            allData.push({ id: `${type}-${i}`, tanggal: row[0] || '', tipe: type, outlet: row[1] || '', pic: row[2] || '', status: 'complete', pdfUrl: row[3] || '' });
+                        }
+                    }
+                }
+                
+                const data = allData.filter(c => !dateFilter || c.tanggal.includes(dateFilter)).filter(c => {
+                    if (!currentOutlet) return true;
+                    const outlet = outlets.find(o => o.nama.toLowerCase().includes(c.outlet.toLowerCase()));
+                    return outlet && outlet.id === currentOutlet;
+                });
+                
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-gray-500">Belum ada data checklist</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = data.map(c => {
+                    const tipeBadge = c.tipe === 'pra' ? 'bg-blue-100 text-blue-700' : c.tipe === 'during' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700';
+                    const tipeLabel = c.tipe === 'pra' ? 'Pra Opening' : c.tipe === 'during' ? 'During' : 'After Closing';
+                    return `<tr><td class="px-6 py-4 text-sm text-gray-500">${c.tanggal}</td><td class="px-6 py-4"><span class="px-2 py-1 text-xs font-medium rounded-full ${tipeBadge}">${tipeLabel}</span></td><td class="px-6 py-4 text-sm text-gray-900">${c.outlet}</td><td class="px-6 py-4 text-sm text-gray-500">${c.pic || '-'}</td><td class="px-6 py-4"><span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700">Lengkap</span></td><td class="px-6 py-4">${c.pdfUrl ? `<a href="${c.pdfUrl}" target="_blank" class="text-blue-600 hover:text-blue-800"><i class="fas fa-file-pdf"></i> PDF</a>` : '-'}</td></tr>`;
+                }).join('');
+            } catch (error) {
+                tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-red-500">Gagal memuat data: ' + error.message + '</td></tr>';
+            }
+        }
 
         // ==================== REJECT ====================
         function loadReject() {
@@ -4217,3 +4461,5 @@
     </div>
 </body>
 </html>
+
+       
