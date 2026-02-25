@@ -525,9 +525,10 @@
                                 <label class="text-sm text-gray-500">Filter Shift:</label>
                                 <select id="shiftFilter" class="px-4 py-2 border rounded-lg" onchange="loadJadwal()">
                                     <option value="">Semua Shift</option>
-                                    <option value="pagi">Pagi (06:00-14:00)</option>
-                                    <option value="siang">Siang (14:00-22:00)</option>
-                                    <option value="malam">Malam (22:00-06:00)</option>
+                                    <option value="pagi">Pagi</option>
+                                    <option value="middle">Middle</option>
+                                    <option value="siang">Siang</option>
+                                    <option value="malam">Malam</option>
                                 </select>
                             </div>
                         </div>
@@ -5742,7 +5743,7 @@
             try { forceUpdateAfterClosingMasterWithNewList(); } catch (e) {}
         })();
 
-        // === PATCH: Pra Opening Master + Time Gating (WIB 03:00-10:00) ===
+        // === PATCH: Pra Opening Master + Time Gating (WIB 03:00-12:00) ===
         (function(){
             // Daftar Pra Opening persis sesuai instruksi
             const PRA_OPENING_LIST = [
@@ -5838,7 +5839,7 @@
             }
             function isWithinPraOpeningWIB(){
                 const { h } = getJakartaHM();
-                return (h >= 3 && h < 10); // 03:00 - 09:59 WIB
+                return (h >= 3 && h < 12); // 03:00 - 11:59 WIB
             }
 
             function forceUpdatePraOpeningMasterWithNewList(){
