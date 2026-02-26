@@ -548,78 +548,68 @@
 
             <!-- Checklist Operasional -->
             <section id="module-checklist" class="module-section p-4 lg:p-8 fade-in">
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-2xl font-bold text-gray-800">Checklist Operasional</h2>
-                    <button onclick="loadChecklistData()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all">
-                        <i class="fas fa-sync-alt mr-2"></i>Refresh Data
-                    </button>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 shadow-sm border border-blue-200">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="font-bold text-blue-900"><i class="fas fa-sunrise text-blue-600 mr-2"></i>Pra Opening</h3>
-                            <i class="fas fa-check-circle text-blue-600 text-2xl"></i>
-                        </div>
-                        <p class="text-sm text-blue-700 mb-4">Checklist persiapan sebelum outlet dibuka untuk melayani pelanggan.</p>
-                        <a href="https://docs.google.com/forms/d/e/1FAIpQLSeo7n9_b7BTOzJb4-3D0w3Hvn7d5LLtc5qoQbluqlbyznch8A/viewform?usp=sharing&ouid=116965073150857505198" target="_blank" class="w-full inline-block text-center bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-all">
-                            <i class="fas fa-external-link-alt mr-2"></i>Buka Form
-                        </a>
-                    </div>
-
-                    <div class="bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl p-6 shadow-sm border border-amber-200">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="font-bold text-amber-900"><i class="fas fa-clock text-amber-600 mr-2"></i>During</h3>
-                            <i class="fas fa-check-circle text-amber-600 text-2xl"></i>
-                        </div>
-                        <p class="text-sm text-amber-700 mb-4">Checklist pemantauan selama operasional outlet berlangsung sepanjang hari.</p>
-                        <a href="https://docs.google.com/forms/d/e/1FAIpQLSeo7n9_b7BTOzJb4-3D0w3Hvn7d5LLtc5qoQbluqlbyznch8A/viewform?usp=sharing&ouid=116965073150857505198" target="_blank" class="w-full inline-block text-center bg-amber-600 hover:bg-amber-700 text-white font-medium py-2 px-4 rounded-lg transition-all">
-                            <i class="fas fa-external-link-alt mr-2"></i>Buka Form
-                        </a>
-                    </div>
-
-                    <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 shadow-sm border border-green-200">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="font-bold text-green-900"><i class="fas fa-moon text-green-600 mr-2"></i>After Closing</h3>
-                            <i class="fas fa-check-circle text-green-600 text-2xl"></i>
-                        </div>
-                        <p class="text-sm text-green-700 mb-4">Checklist penutupan outlet dan persiapan untuk hari operasional berikutnya.</p>
-                        <a href="https://docs.google.com/forms/d/e/1FAIpQLSdfo2gHQyo0BWLC8xIhQzvjUk6NHZi-wUSnk8R2QpibbeT-Pg/viewform?usp=sharing&ouid=116965073150857505198" target="_blank" class="w-full inline-block text-center bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-all">
-                            <i class="fas fa-external-link-alt mr-2"></i>Buka Form
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Data Checklist -->
-                <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-                    <div class="p-4 border-b flex items-center justify-between gap-4 flex-wrap">
-                        <h3 class="font-bold text-gray-800"><i class="fas fa-list-check text-blue-500 mr-2"></i>Riwayat Checklist</h3>
-                        <div class="flex items-center gap-2">
-                            <input type="date" id="checklistDateFilter" class="px-3 py-2 border rounded-lg text-sm" onchange="loadChecklistData()">
-                            <select id="checklistTypeFilter" class="px-3 py-2 border rounded-lg text-sm" onchange="loadChecklistData()">
-                                <option value="">Semua Tipe</option>
-                                <option value="pra">Pra Opening</option>
-                                <option value="during">During</option>
-                                <option value="after">After Closing</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tanggal</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipe</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Outlet</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">PIC</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody id="checklistDataTable" class="divide-y divide-gray-200"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
+    <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold text-gray-800">Checklist Operasional</h2>
+        <button onclick="loadChecklistHistory()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all">
+            <i class="fas fa-sync-alt mr-2"></i>Refresh
+        </button>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 shadow-sm">
+            <h3 class="font-bold text-blue-900 mb-2"><i class="fas fa-sunrise text-blue-600 mr-2"></i>Pra Opening</h3>
+            <p class="text-sm text-blue-700 mb-4">Jam 03:00 - 10:00</p>
+            <button id="btnChecklistPra" onclick="openChecklistForm('pra')" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-all">
+                <i class="fas fa-clipboard-check mr-2"></i>Isi Checklist
+            </button>
+        </div>
+        <div class="bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl p-6 shadow-sm">
+            <h3 class="font-bold text-amber-900 mb-2"><i class="fas fa-clock text-amber-600 mr-2"></i>During</h3>
+            <p class="text-sm text-amber-700 mb-4">Jam 15:30 - 18:30</p>
+            <button id="btnChecklistDuring" onclick="openChecklistForm('during')" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-medium py-2 px-4 rounded-lg transition-all">
+                <i class="fas fa-clipboard-check mr-2"></i>Isi Checklist
+            </button>
+        </div>
+        <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 shadow-sm">
+            <h3 class="font-bold text-green-900 mb-2"><i class="fas fa-moon text-green-600 mr-2"></i>After Closing</h3>
+            <p class="text-sm text-green-700 mb-4">Jam 21:30 - 00:00</p>
+            <button id="btnChecklistAfter" onclick="openChecklistForm('after')" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-all">
+                <i class="fas fa-clipboard-check mr-2"></i>Isi Checklist
+            </button>
+        </div>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div class="p-4 flex items-center justify-between gap-4 flex-wrap">
+            <h3 class="font-bold text-gray-800"><i class="fas fa-list-check text-blue-500 mr-2"></i>Riwayat Checklist</h3>
+            <div class="flex items-center gap-2">
+                <input type="date" id="checklistDateFilter" class="px-3 py-2 border rounded-lg text-sm" onchange="loadChecklistHistory()">
+                <select id="checklistWaktuFilter" class="px-3 py-2 border rounded-lg text-sm" onchange="loadChecklistHistory()">
+                    <option value="">Semua Waktu</option>
+                    <option value="pra">Pra Opening</option>
+                    <option value="during">During</option>
+                    <option value="after">After Closing</option>
+                </select>
+            </div>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tanggal</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Waktu</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Item</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">OK</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tidak OK</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">PIC</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="checklistHistoryTable">
+                    <tr><td colspan="7" class="px-6 py-8 text-center text-gray-500">Belum ada data checklist</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
 
             <!-- Catatan Barang Reject -->
             <section id="module-reject" class="module-section p-4 lg:p-8 fade-in">
@@ -1431,6 +1421,31 @@
             </div>
         </div>
     </div>
+    <!-- Modal Checklist Form -->
+    <div id="modalChecklist" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b flex justify-between items-center sticky top-0 bg-white z-10">
+                <h3 class="text-xl font-bold" id="checklistModalTitle">Checklist</h3>
+                <button onclick="closeModal('modalChecklist')" class="text-gray-500 hover:text-gray-700"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="p-6">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">PIC (Penanggung Jawab)</label>
+                    <input type="text" id="checklistPIC" class="w-full px-4 py-2 border rounded-lg" placeholder="Nama penanggung jawab">
+                </div>
+                <div id="checklistItemsContainer" class="space-y-3"></div>
+                <div class="mt-6 flex gap-2">
+                    <button onclick="saveChecklistForm()" class="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700">
+                        <i class="fas fa-save mr-2"></i>Simpan Checklist
+                    </button>
+                    <button onclick="closeModal('modalChecklist')" class="px-6 bg-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-400">
+                        Batal
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <!-- Toast Notification -->
     <div id="toast" class="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg hidden z-50 fade-in">
@@ -1688,6 +1703,187 @@
         let allowedOutlets = [];
         let isViewOnly = false;
         let currentModule = 'dashboard';
+
+// DATA ITEM CHECKLIST
+// Copy kode ini dan paste di dalam tag <script> di index.html (setelah variabel global)
+
+const CHECKLIST_ITEMS = {
+    pra: [
+        "Muka bersih tidak berminyak dan merias wajah sesuai standar",
+        "Kulit tidak kering dan tidak bersisik memakai body lotion",
+        "Kuku pendek dan tidak menggunakan cat kuku",
+        "Bulu atau rambut hidung tidak menjorok keluar lubang hidung",
+        "Tidak ada bau yang tidak sedap dari badan, mulut, telinga atau bagian tubuh lainnya termasuk parfume yang aromanya menyengat",
+        "Mengenakan baju dan celana sesuai standar bentuk, warna bahan yang ditetapkan dalam kondisi bersih dan rapi",
+        "Memakai sepatu pantofel warna hitam dengan maksimal tinggi 3 cm dalam kondisi bersih dan mengkilap (bersemir)",
+        "Memakai ikat pinggang warna hitam polos terbuat dari kulit bukan kain atau sintetis dengan kepala gesper yang sederhana",
+        "Memakai kaos singlet warna putih",
+        "Tidak memakai gelang, anting, kalung, jam tangan atau aksesoris lainnya",
+        "Tidak ada tato di bagian tubuh yang terbuka",
+        "Pakai name tag sesuai standar yang ditetapkan",
+        "Memakai masker hitam dan kelengkapan kerja sesuai jabatannya",
+        "Rambut rapi dengan maksimal panjang 5 cm, tidak kusam/kering, rapi menggunakan minyak rambut yang tidak berbau menyengat",
+        "Tidak memelihara kumis, jenggot dan jambang dipotong sejajar ekor mata",
+        "Hijab dalam keadaan rapi, terutama pada bagian leher harus kelihatan bentuk leher dengan bantuan jepit/bros tanpa manik dan warna sesuai warna hijab",
+        "Dilarang menggunakan jarum pentul",
+        "Memakai dalaman hijab berwarna hitam polos",
+        "Rambut panjang harus memakai hairnet dan poni tidak menjuntai ke depan menutupi dahi",
+        "Order Barang sudah dicek kacab, diinput dan dikirim ke bagian gudang",
+        "Labeling pada pada barang datang, hasil prepare dan atau hasil produksi sudah dilakukan",
+        "Rekap Pemakaian sudah dikerjakan dan dikirim ke bagian akuntansi",
+        "Pencatatan produksi cabang, produksi pusat sudah dikerjakan dan diverifikasi",
+        "Laporan Piutang (Bagi cabang yang ada transaksi piutang) sudah dikerjakan dan atau dikirim ke bagian akuntansi",
+        "Sendok, garpu, pisau roti dan sumpit tersedia dalam kondisi cukup",
+        "Tissue meja, saos, kecap, sambal dalam kondisi terisi cukup dan tidak belepotan",
+        "Nampan, buku menu, slip order dan alat tulis tersedia dalam kondisi bersih dan cukup",
+        "Kain Lap Meja (waiter, juicer, kasir dan dapur) dalam kondisi bersih dan tidak ada bau tidak sedap",
+        "Kain Lap Sendok, gelas dan piring dalam kondisi bersih dan tidak ada bau tidak sedap",
+        "Hand sanitizer pada posisi pintu masuk & kasir",
+        "Disinfektan tersedia dalam kondisi cukup",
+        "Semua meja, kursi, sofa, kursi anak  dalam kondisi bersih dan tertata rapi",
+        "Semua pegangan pintu, pegangan anak tangga, pembatas antrian dalam kondisi bersih",
+        "Wastafel dalam kondisi bersih, tersedia hand soap, tissue, tempat sampah, cermin",
+        "Tempat Sampah semua area dalam kondisi bersih dan tidak ada bau tidak sedap",
+        "Pad counter dalam kondisi bersih dan barang-barang tertata rapi",
+        "Semua Dinding (dining, juicer, kasir, dapur, gudang) dalam kondisi bersih",
+        "Semua lantai (dining, kasir, juicer, dapur, gudang) dan gotter dalam kondisi bersih",
+        "Kaca (jendela, interior) dalam kondisi bersih tidak buram",
+        "Diffuser AC / AC dalam kondisi bersih dan dingin",
+        "TV display, Audio player dalam kondisi normal dan bersih",
+        "Interior (gambar dinding, lampu gantung, furniture) dalam kondisi bersih",
+        "Service Extension dalam kondisi rapi dan bersih",
+        "Lampu (dining, box menu, Logo) dalam kondisi menyala normal dan bersih",
+        "Tanaman Hias tidak ada yang layu daunnya",
+        "Sarana Promosi (x banner, tripod banner, standing menu, baliho) dalam kondisi layak dan bersih",
+        "Peralatan proses juicer (Blender, Juicer, extractor, sendok ukur, pisau, talenan, saringan juice, teh, scoop es krim, tea maker, mesin serut es, mesin cup sealer, es maker, timbangan) dalam kondisi berfungsi normal dan bersih",
+        "Alat saji (Plate coupe 7.5, 8, 9, 10,5. Saucer 4,25. Bowl 4.5, 6, Bowl omega 7, square plate besar, kecil, piring snack, piring lauk, mangkok kuring/ramen, saucer, sendok, gelas juice, gelas teh, cangkir kopi, lunch box, box gurame, paper bowl set 650, 800, 1000, cup oval, cup 400, 500, sedotan) dalam kondisi cukup dan bersih",
+        "Meja kerja di semua area dalam kondisi bersih dan penataan barang-barang rapi",
+        "Alegro dalam kondisi berfungsi normal, bersih dan penataan buah rapi",
+        "Freezer, under freezer, chiller, under chiller, salad case (gasket, kaca, rak, kipas, handle, body) juicer dan dapur dalam kondisi berfungsi normal, bersih, bunga es tidak tebal dan penataan bahan baku rapi",
+        "Chiller, salad case juicer dan dapur dalam kondisi normal dan bersih",
+        "Tempat prepare di area juicer dan dapur (food pan, kitchen set, termos nasi, keranjang, toples, box risol, box thawing) dalam kondisi tertutup dan dalam kondisi bersih",
+        "Tempat penyimpanan bahan baku & produk (rak susun, rak tempel dan lemari penyimpanan termasuk laci-laci) dalam kondisi bersih dan barang-barang tersusun rapi",
+        "Sink, grease trap, grease induk dan gutter dalam kondisi bersih",
+        "Langit-langit semua area dalam kondisi baik dan bersih",
+        "Tempat sampah semua area dalam kondisi bersih dan tidak ada bau tidak sedap",
+        "Dinding semua area dalam kondisi bersih",
+        "Mesin POS, alat pembayaran (EDC BCA, Mandiri, BRI, Gobiz, Grabfood, Handphone, HT dalam kondisi normal dan bersih",
+        "Setor omset maksimal jam 14.00 dan laporan setor omzet ke bagian keuangan",
+        "Kelengkapan peralatan kasir (kalkulator, money detector, stepless, isolatif) dalam kondisi cukup",
+        "Uang receh tersedia cukup (20rb, 10rb, 5rb, 2rb, 1rb, 500, 200, 100)",
+        "Peralatan proses cook (steamer nasi, rice cooker, gas cooker, steamer, magic com, microwave, toaster, panci, wajan, sodet, saringan mie, saringan minyak, jepitan makanan, deep fryer, teflon, cetakan nasi, kompor high, kompor low, pisau, talenan, parutan keju, timbangan) dalam kondisi layak pakai, bersih dan bebas dari kontaminasi antar alat, maupun dari  dari hal-hal lainnya",
+        "Hood dan exhaust dalam kondisi bersih dan berfungsi normal",
+        "Mesin cuci piring dan mesin pembuat es dalam kondisi bersih dan berfungsi normal",
+        "Semua area bebas dari hama(tikus, kecoa, lalat, semut)",
+        "Fasilitas toilet di dalam cabang",
+        "Handle pintu dan kunci pintu berfungsi normal dan bersih",
+        "Aroma toilet harum atau tidak berbau tidak sedap",
+        "Lantai dan dinding dalam kondisi bersih dan kering",
+        "Lampu penerangan tidak ada yang mati dan fan exhaust dengan kondisi bersih dan berfungsi normal",
+        "Kloset dalam kondisi baik,bersih dan kering",
+        "Shower kloset berfungsi normal dan bersih",
+        "Wastafel dalam kondisi normal dan bersih serta tersedia hand soap dan tissue",
+        "Urinoir dalam kondisi bersih, berfungsi normal dan tidak beraroma tidak sedap",
+        "Tempat Sampah dalam kondisi bersih tidak ada bau tidak sedap"
+    ],
+    during: [
+        "Muka bersih tidak berminyak dan merias wajah sesuai standar",
+        "Kulit tidak kering dan tidak bersisik memakai body lotion",
+        "Kuku pendek dan tidak menggunakan cat kuku",
+        "Bulu atau rambut hidung tidak menjorok keluar lubang hidung",
+        "Tidak ada bau yang tidak sedap dari badan, mulut, telinga atau bagian tubuh lainnya termasuk parfume yang aromanya menyengat",
+        "Mengenakan baju dan celana sesuai standar bentuk, warna bahan yang ditetapkan dalam kondisi bersih dan rapi",
+        "Memakai sepatu pantofel warna hitam dengan maksimal tinggi 3 cm dalam kondisi bersih dan mengkilap (bersemir)",
+        "Memakai ikat pinggang warna hitam polos terbuat dari kulit bukan kain atau sintetis dengan kepala gesper yang sederhana",
+        "Memakai kaos singlet warna putih",
+        "Tidak memakai gelang, anting, kalung, jam tangan atau aksesoris lainnya",
+        "Tidak ada tato di bagian tubuh yang terbuka",
+        "Pakai name tag sesuai standar yang ditetapkan",
+        "Memakai masker hitam dan kelengkapan kerja sesuai jabatannya",
+        "Rambut rapi dengan maksimal panjang 5 cm, tidak kusam/kering, rapi menggunakan minyak rambut yang tidak berbau menyengat",
+        "Tidak memelihara kumis, jenggot dan jambang dipotong sejajar ekor mata",
+        "Hijab dalam keadaan rapi, terutama pada bagian leher harus kelihatan bentuk leher dengan bantuan jepit/bros tanpa manik dan warna sesuai warna hijab",
+        "Dilarang menggunakan jarum pentul",
+        "Memakai dalaman hijab berwarna hitam polos",
+        "Rambut panjang harus memakai hairnet dan poni tidak menjuntai ke depan menutupi dahi",
+        "Order Barang sudah dicek kacab, diinput dan dikirim ke bagian gudang",
+        "Labeling pada pada barang datang, hasil prepare dan atau hasil produksi sudah dilakukan",
+        "Rekap Pemakaian sudah dikerjakan dan dikirim ke bagian akuntansi",
+        "Pencatatan produksi cabang, produksi pusat sudah dikerjakan dan diverifikasi",
+        "Laporan Piutang (Bagi cabang yang ada transaksi piutang) sudah dikerjakan dan atau dikirim ke bagian akuntansi",
+        "Sendok, garpu, pisau roti dan sumpit tersedia dalam kondisi cukup",
+        "Tissue meja, saos, kecap, sambal dalam kondisi terisi cukup dan tidak belepotan",
+        "Nampan, buku menu, slip order dan alat tulis tersedia dalam kondisi bersih dan cukup",
+        "Kain Lap Meja (waiter, juicer, kasir dan dapur) dalam kondisi bersih dan tidak ada bau tidak sedap",
+        "Kain Lap Sendok, gelas dan piring dalam kondisi bersih dan tidak ada bau tidak sedap",
+        "Hand sanitizer pada posisi pintu masuk & kasir",
+        "Disinfektan tersedia dalam kondisi cukup",
+        "Semua meja, kursi, sofa, kursi anak  dalam kondisi bersih dan tertata rapi",
+        "Semua pegangan pintu, pegangan anak tangga, pembatas antrian dalam kondisi bersih",
+        "Wastafel dalam kondisi bersih, tersedia hand soap, tissue, tempat sampah, cermin",
+        "Tempat Sampah semua area dalam kondisi bersih dan tidak ada bau tidak sedap",
+        "Pad counter dalam kondisi bersih dan barang-barang tertata rapi",
+        "Semua Dinding (dining, juicer, kasir, dapur, gudang) dalam kondisi bersih",
+        "Semua lantai (dining, kasir, juicer, dapur, gudang) dan gotter dalam kondisi bersih",
+        "Kaca (jendela, interior) dalam kondisi bersih tidak buram",
+        "Diffuser AC / AC dalam kondisi bersih dan dingin",
+        "TV display, Audio player dalam kondisi normal dan bersih",
+        "Interior (gambar dinding, lampu gantung, furniture) dalam kondisi bersih",
+        "Service Extension dalam kondisi rapi dan bersih",
+        "Lampu (dining, box menu, Logo) dalam kondisi menyala normal dan bersih",
+        "Tanaman Hias tidak ada yang layu daunnya",
+        "Sarana Promosi (x banner, tripod banner, standing menu, baliho) dalam kondisi layak dan bersih",
+        "Peralatan proses juicer (Blender, Juicer, extractor, sendok ukur, pisau, talenan, saringan juice, teh, scoop es krim, tea maker, mesin serut es, mesin cup sealer, es maker, timbangan) dalam kondisi berfungsi normal dan bersih",
+        "Alat saji (Plate coupe 7.5, 8, 9, 10,5. Saucer 4,25. Bowl 4.5, 6, Bowl omega 7, square plate besar, kecil, piring snack, piring lauk, mangkok kuring/ramen, saucer, sendok, gelas juice, gelas teh, cangkir kopi, lunch box, box gurame, paper bowl set 650, 800, 1000, cup oval, cup 400, 500, sedotan) dalam kondisi cukup dan bersih",
+        "Meja kerja di semua area dalam kondisi bersih dan penataan barang-barang rapi",
+        "Alegro dalam kondisi berfungsi normal, bersih dan penataan buah rapi",
+        "Freezer, under freezer, chiller, under chiller, salad case (gasket, kaca, rak, kipas, handle, body) juicer dan dapur dalam kondisi berfungsi normal, bersih, bunga es tidak tebal dan penataan bahan baku rapi",
+        "Chiller, salad case juicer dan dapur dalam kondisi normal dan bersih",
+        "Tempat prepare di area juicer dan dapur (food pan, kitchen set, termos nasi, keranjang, toples, box risol, box thawing) dalam kondisi tertutup dan dalam kondisi bersih",
+        "Tempat penyimpanan bahan baku & produk (rak susun, rak tempel dan lemari penyimpanan termasuk laci-laci) dalam kondisi bersih dan barang-barang tersusun rapi",
+        "Sink, grease trap, grease induk dan gutter dalam kondisi bersih",
+        "Langit-langit semua area dalam kondisi baik dan bersih",
+        "Tempat sampah semua area dalam kondisi bersih dan tidak ada bau tidak sedap",
+        "Dinding semua area dalam kondisi bersih",
+        "Mesin POS, alat pembayaran (EDC BCA, Mandiri, BRI, Gobiz, Grabfood, Handphone, HT dalam kondisi normal dan bersih",
+        "Setor omset maksimal jam 14.00 dan laporan setor omzet ke bagian keuangan",
+        "Kelengkapan peralatan kasir (kalkulator, money detector, stepless, isolatif) dalam kondisi cukup",
+        "Uang receh tersedia cukup (20rb, 10rb, 5rb, 2rb, 1rb, 500, 200, 100)",
+        "Peralatan proses cook (steamer nasi, rice cooker, gas cooker, steamer, magic com, microwave, toaster, panci, wajan, sodet, saringan mie, saringan minyak, jepitan makanan, deep fryer, teflon, cetakan nasi, kompor high, kompor low, pisau, talenan, parutan keju, timbangan) dalam kondisi layak pakai, bersih dan bebas dari kontaminasi antar alat, maupun dari  dari hal-hal lainnya",
+        "Hood dan exhaust dalam kondisi bersih dan berfungsi normal",
+        "Mesin cuci piring dan mesin pembuat es dalam kondisi bersih dan berfungsi normal",
+        "Semua area bebas dari hama(tikus, kecoa, lalat, semut)",
+        "Fasilitas toilet di dalam cabang",
+        "Handle pintu dan kunci pintu berfungsi normal dan bersih",
+        "Aroma toilet harum atau tidak berbau tidak sedap",
+        "Lantai dan dinding dalam kondisi bersih dan kering",
+        "Lampu penerangan tidak ada yang mati dan fan exhaust dengan kondisi bersih dan berfungsi normal",
+        "Kloset dalam kondisi baik,bersih dan kering",
+        "Shower kloset berfungsi normal dan bersih",
+        "Wastafel dalam kondisi normal dan bersih serta tersedia hand soap dan tissue",
+        "Urinoir dalam kondisi bersih, berfungsi normal dan tidak beraroma tidak sedap",
+        "Tempat Sampah dalam kondisi bersih tidak ada bau tidak sedap"
+    ],
+    after: [
+        "Permintaan barang ke gudang sudah di lakukan dan diverifikasi oleh kacab atau staff penggantinya",
+        "Labeling pada pada barang datang sudah dilakukan",
+        "Stock Opname sudah dilakukan dan diinput kedalam form rekapan pemakaian",
+        "Bahan baku sisa sudah masuk pendingin (bahan baku food & juice)",
+        "Semua peralatan saji dan kerja dalam kondisi bersih (dapur, juicer, kasir, dinning)",
+        "Grase Trap dan Gotter dalam kondisi bersih (dapur & juicer)",
+        "Semua area dalam kondisi bersih meliputi semua dinding, semua kolong meja kerja, pendingin, meja makan dan bangku dan atau sofa dalam kondisi bersih. Semua area bebas hama (tikus, kecoa, semut, lalat)",
+        "Tea maker, Microwave, Toaster, Magic com, Mesin cup sealer, Mesin ice cube, Mesin cuci piring dalam kondisi off",
+        "Exaust Pan, Kompor gas, kompor listrik  dalam kondisi off",
+        "Valve Gas central, Valve kran air dalam kondisi off",
+        "Lampu penerangan dan lampu  hias area dinning, dapur, juicer, kasir serta lampu logo dalam kondisi off",
+        "Komputer admin, POS, Semua printer, Monitor checker, UPS dalam kondisi off",
+        "Uang Omzet, Kas Kecil, Modal sudah masuk ke brangkas dan kodenya diputar acak",
+        "Kipas Angin / AC, TV display, Audio player dalam kondisi off",
+        "Tidak ada sampah yang tertinggal di dalam cabang",
+        "Semua pintu dan jendela dalam kondisi terkunci"
+    ]
+};
+
         let selectedRating = 0;
         let schedulePeriodOffset = 0; // 0 = periode berjalan, -1 periode sebelumnya, 1 periode berikutnya
 
@@ -2637,7 +2833,7 @@
                 case 'jadwal-kerja': loadJadwal(); updateSchedulePeriodLabel(); break;
                 case 'tugas-harian': loadTugas(); break;
                 case 'preparation': loadPreparation(); break;
-                case 'checklist': loadChecklistData(); break;
+                case 'checklist': loadChecklistHistory(); break;
                 case 'reject': loadReject(); break;
                 case 'inventori': loadInventori(); break;
                 case 'logbook': loadLogbook(); break;
@@ -3369,61 +3565,329 @@
         // Checklist UI removed — related handlers deprecated
 
         // ==================== CHECKLIST DATA ====================
-        async function loadChecklistData() {
-            const tbody = document.getElementById('checklistDataTable');
-            tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-spinner fa-spin mr-2"></i>Memuat data...</td></tr>';
-            
-            try {
-                const apiKey = localStorage.getItem('apiKey');
-                const checklistSpreadsheetId = localStorage.getItem('checklistSpreadsheetId') || '1NjWDgL18Oz-t6PyuovpSliWqPyTC58QyH_gP4sHJ134';
-                
-                if (!apiKey) {
-                    tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-red-500">API Key belum dikonfigurasi. Silakan ke menu Koneksi API.</td></tr>';
-                    return;
-                }
+// FUNGSI CHECKLIST - PART 1
+// Ganti fungsi loadChecklistData() yang lama dengan fungsi-fungsi ini
 
-                const dateFilter = (document.getElementById('checklistDateFilter')?.value || '').trim();
-                const typeFilter = (document.getElementById('checklistTypeFilter')?.value || '').trim();
-                const outlets = JSON.parse(localStorage.getItem('outlets') || '[]');
-                let allData = [];
-                const types = typeFilter ? [typeFilter] : ['pra', 'during', 'after'];
-                const CHECKLIST_SHEETS = { pra: 'Operasional', during: 'Operasional', after: 'Closing' };
-                
-                for (const type of types) {
-                    const sheetName = CHECKLIST_SHEETS[type];
-                    const url = `https://sheets.googleapis.com/v4/spreadsheets/${checklistSpreadsheetId}/values/${sheetName}?key=${apiKey}`;
-                    const response = await fetch(url);
-                    if (!response.ok) continue;
-                    const result = await response.json();
-                    const rows = result.values || [];
-                    if (rows.length > 1) {
-                        for (let i = 1; i < rows.length; i++) {
-                            const row = rows[i];
-                            allData.push({ id: `${type}-${i}`, tanggal: row[0] || '', tipe: type, outlet: row[1] || '', pic: row[2] || '', status: 'complete', pdfUrl: row[3] || '' });
-                        }
-                    }
-                }
-                
-                const data = allData.filter(c => !dateFilter || c.tanggal.includes(dateFilter)).filter(c => {
-                    if (!currentOutlet) return true;
-                    const outlet = outlets.find(o => o.nama.toLowerCase().includes(c.outlet.toLowerCase()));
-                    return outlet && outlet.id === currentOutlet;
-                });
-                
-                if (data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-gray-500">Belum ada data checklist</td></tr>';
-                    return;
-                }
-                
-                tbody.innerHTML = data.map(c => {
-                    const tipeBadge = c.tipe === 'pra' ? 'bg-blue-100 text-blue-700' : c.tipe === 'during' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700';
-                    const tipeLabel = c.tipe === 'pra' ? 'Pra Opening' : c.tipe === 'during' ? 'During' : 'After Closing';
-                    return `<tr><td class="px-6 py-4 text-sm text-gray-500">${c.tanggal}</td><td class="px-6 py-4"><span class="px-2 py-1 text-xs font-medium rounded-full ${tipeBadge}">${tipeLabel}</span></td><td class="px-6 py-4 text-sm text-gray-900">${c.outlet}</td><td class="px-6 py-4 text-sm text-gray-500">${c.pic || '-'}</td><td class="px-6 py-4"><span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700">Lengkap</span></td><td class="px-6 py-4">${c.pdfUrl ? `<a href="${c.pdfUrl}" target="_blank" class="text-blue-600 hover:text-blue-800"><i class="fas fa-file-pdf"></i> PDF</a>` : '-'}</td></tr>`;
-                }).join('');
-            } catch (error) {
-                tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-red-500">Gagal memuat data: ' + error.message + '</td></tr>';
+let currentChecklistWaktu = null;
+
+function openChecklistForm(waktu) {
+    if (isViewOnly) {
+        showToast('Mode View Only - Tidak dapat mengisi checklist');
+        return;
+    }
+    
+    const now = new Date();
+    const hour = now.getHours();
+    const minute = now.getMinutes();
+    const timeInMinutes = hour * 60 + minute;
+    
+    // Validasi waktu
+    let allowed = false;
+    let timeRange = '';
+    
+    if (waktu === 'pra') {
+        allowed = (timeInMinutes >= 180 && timeInMinutes < 600); // 03:00 - 10:00
+        timeRange = '03:00 - 10:00';
+    } else if (waktu === 'during') {
+        allowed = (timeInMinutes >= 930 && timeInMinutes < 1110); // 15:30 - 18:30
+        timeRange = '15:30 - 18:30';
+    } else if (waktu === 'after') {
+        allowed = (timeInMinutes >= 1290 || timeInMinutes < 60); // 21:30 - 00:00
+        timeRange = '21:30 - 00:00';
+    }
+    
+    if (!allowed) {
+        showToast(`Checklist ${waktu.toUpperCase()} hanya bisa diisi pada jam ${timeRange}`);
+        return;
+    }
+    
+    currentChecklistWaktu = waktu;
+    
+    const titles = {
+        pra: 'Checklist Pra Opening (03:00 - 10:00)',
+        during: 'Checklist During (15:30 - 18:30)',
+        after: 'Checklist After Closing (21:30 - 00:00)'
+    };
+    
+    document.getElementById('checklistModalTitle').textContent = titles[waktu];
+    document.getElementById('checklistPIC').value = currentUser ? currentUser.nama : '';
+    
+    const items = CHECKLIST_ITEMS[waktu] || [];
+    const container = document.getElementById('checklistItemsContainer');
+    
+    container.innerHTML = items.map((item, idx) => `
+        <div class="border rounded-lg p-4 bg-gray-50">
+            <p class="text-sm text-gray-800 mb-3">${idx + 1}. ${item}</p>
+            <div class="flex items-center gap-4 mb-2">
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="status_${idx}" value="ok" class="w-4 h-4 text-green-600" onchange="toggleCapaField(${idx})">
+                    <span class="text-sm font-medium text-green-700">OK</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="status_${idx}" value="tidak_ok" class="w-4 h-4 text-red-600" onchange="toggleCapaField(${idx})">
+                    <span class="text-sm font-medium text-red-700">TIDAK OK</span>
+                </label>
+            </div>
+            <div id="capa_${idx}" class="hidden mt-2">
+                <label class="block text-xs font-medium text-red-700 mb-1">CAPA (Wajib diisi) <span class="text-red-500">*</span></label>
+                <textarea id="capa_text_${idx}" rows="2" class="w-full px-3 py-2 border border-red-300 rounded-lg text-sm focus:ring-2 focus:ring-red-300" placeholder="Jelaskan tindakan perbaikan dan pencegahan..."></textarea>
+            </div>
+        </div>
+    `).join('');
+    
+    openModal('modalChecklist');
+}
+
+function toggleCapaField(idx) {
+    const statusRadios = document.getElementsByName(`status_${idx}`);
+    const capaDiv = document.getElementById(`capa_${idx}`);
+    const capaText = document.getElementById(`capa_text_${idx}`);
+    
+    let selectedValue = null;
+    for (const radio of statusRadios) {
+        if (radio.checked) {
+            selectedValue = radio.value;
+            break;
+        }
+    }
+    
+    if (selectedValue === 'tidak_ok') {
+        capaDiv.classList.remove('hidden');
+        capaText.required = true;
+    } else {
+        capaDiv.classList.add('hidden');
+        capaText.required = false;
+        capaText.value = '';
+    }
+}
+
+async function saveChecklistForm() {
+    if (!currentChecklistWaktu) return;
+    
+    const pic = document.getElementById('checklistPIC').value.trim();
+    if (!pic) {
+        showToast('PIC harus diisi');
+        return;
+    }
+    
+    const items = CHECKLIST_ITEMS[currentChecklistWaktu] || [];
+    const today = toYMD(new Date());
+    let hasError = false;
+    let errorMsg = '';
+    
+    // Validasi semua item sudah diisi
+    for (let i = 0; i < items.length; i++) {
+        const statusRadios = document.getElementsByName(`status_${i}`);
+        let checked = false;
+        let status = null;
+        
+        for (const radio of statusRadios) {
+            if (radio.checked) {
+                checked = true;
+                status = radio.value;
+                break;
             }
         }
+        
+        if (!checked) {
+            hasError = true;
+            errorMsg = `Item nomor ${i + 1} belum diisi`;
+            break;
+        }
+        
+        // Validasi CAPA jika status tidak ok
+        if (status === 'tidak_ok') {
+            const capaText = document.getElementById(`capa_text_${i}`);
+            if (!capaText || !capaText.value.trim()) {
+                hasError = true;
+                errorMsg = `CAPA untuk item nomor ${i + 1} harus diisi`;
+                break;
+            }
+        }
+    }
+    
+    if (hasError) {
+        showToast(errorMsg);
+        return;
+    }
+    
+    // Simpan setiap item ke database
+    for (let i = 0; i < items.length; i++) {
+        const statusRadios = document.getElementsByName(`status_${i}`);
+        let status = null;
+        
+        for (const radio of statusRadios) {
+            if (radio.checked) {
+                status = radio.value;
+                break;
+            }
+        }
+        
+        const capaText = document.getElementById(`capa_text_${i}`);
+        const capa = status === 'tidak_ok' ? (capaText ? capaText.value.trim() : '') : '';
+        
+        await saveData('checklist', {
+            outlet: currentOutlet,
+            tanggal: today,
+            waktu: currentChecklistWaktu,
+            item: items[i],
+            status: status,
+            capa: capa,
+            pic: pic
+        });
+    }
+    
+    closeModal('modalChecklist');
+    showToast('Checklist berhasil disimpan!');
+    loadChecklistHistory();
+    addActivity('checklist', `Checklist ${currentChecklistWaktu.toUpperCase()} selesai diisi`);
+}
+
+
+// FUNGSI CHECKLIST - PART 2
+// Fungsi untuk load riwayat checklist
+
+async function loadChecklistHistory() {
+    const tbody = document.getElementById('checklistHistoryTable');
+    tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-spinner fa-spin mr-2"></i>Memuat data...</td></tr>';
+    
+    try {
+        const dateFilter = document.getElementById('checklistDateFilter')?.value || '';
+        const waktuFilter = document.getElementById('checklistWaktuFilter')?.value || '';
+        
+        const allData = await loadData('checklist', { outlet: currentOutlet });
+        
+        // Group by tanggal + waktu
+        const grouped = {};
+        allData.forEach(item => {
+            if (dateFilter && item.tanggal !== dateFilter) return;
+            if (waktuFilter && item.waktu !== waktuFilter) return;
+            
+            const key = `${item.tanggal}_${item.waktu}`;
+            if (!grouped[key]) {
+                grouped[key] = {
+                    tanggal: item.tanggal,
+                    waktu: item.waktu,
+                    items: [],
+                    pic: item.pic || '-'
+                };
+            }
+            grouped[key].items.push(item);
+        });
+        
+        const history = Object.values(grouped).sort((a, b) => {
+            if (a.tanggal !== b.tanggal) return b.tanggal.localeCompare(a.tanggal);
+            const waktuOrder = { pra: 1, during: 2, after: 3 };
+            return (waktuOrder[b.waktu] || 0) - (waktuOrder[a.waktu] || 0);
+        });
+        
+        if (history.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-8 text-center text-gray-500">Belum ada data checklist</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = history.map(h => {
+            const okCount = h.items.filter(i => i.status === 'ok').length;
+            const notOkCount = h.items.filter(i => i.status === 'tidak_ok').length;
+            const total = h.items.length;
+            
+            const waktuLabels = {
+                pra: { label: 'Pra Opening', class: 'bg-blue-100 text-blue-700' },
+                during: { label: 'During', class: 'bg-amber-100 text-amber-700' },
+                after: { label: 'After Closing', class: 'bg-green-100 text-green-700' }
+            };
+            
+            const waktuInfo = waktuLabels[h.waktu] || { label: h.waktu, class: 'bg-gray-100 text-gray-700' };
+            
+            return `
+                <tr>
+                    <td class="px-6 py-4 text-sm text-gray-900">${formatDate(h.tanggal)}</td>
+                    <td class="px-6 py-4"><span class="px-2 py-1 text-xs font-medium rounded-full ${waktuInfo.class}">${waktuInfo.label}</span></td>
+                    <td class="px-6 py-4 text-sm text-gray-700">${total}</td>
+                    <td class="px-6 py-4 text-sm text-green-600 font-medium">${okCount}</td>
+                    <td class="px-6 py-4 text-sm text-red-600 font-medium">${notOkCount}</td>
+                    <td class="px-6 py-4 text-sm text-gray-700">${h.pic}</td>
+                    <td class="px-6 py-4">
+                        <button onclick="viewChecklistDetail('${h.tanggal}', '${h.waktu}')" class="text-blue-600 hover:text-blue-800">
+                            <i class="fas fa-eye mr-1"></i>Detail
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+        
+    } catch (error) {
+        console.error('Load checklist history failed:', error);
+        tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-8 text-center text-red-500">Gagal memuat data: ' + error.message + '</td></tr>';
+    }
+}
+
+async function viewChecklistDetail(tanggal, waktu) {
+    const allData = await loadData('checklist', { 
+        outlet: currentOutlet,
+        tanggal: tanggal,
+        waktu: waktu
+    });
+    
+    if (allData.length === 0) {
+        showToast('Data tidak ditemukan');
+        return;
+    }
+    
+    const waktuLabels = {
+        pra: 'Pra Opening (03:00 - 10:00)',
+        during: 'During (15:30 - 18:30)',
+        after: 'After Closing (21:30 - 00:00)'
+    };
+    
+    document.getElementById('checklistModalTitle').textContent = `Detail Checklist ${waktuLabels[waktu]} - ${formatDate(tanggal)}`;
+    document.getElementById('checklistPIC').value = allData[0].pic || '-';
+    document.getElementById('checklistPIC').disabled = true;
+    
+    const container = document.getElementById('checklistItemsContainer');
+    container.innerHTML = allData.map((item, idx) => {
+        const statusClass = item.status === 'ok' ? 'text-green-700 bg-green-50' : 'text-red-700 bg-red-50';
+        const statusLabel = item.status === 'ok' ? 'OK' : 'TIDAK OK';
+        
+        return `
+            <div class="border rounded-lg p-4 ${statusClass}">
+                <p class="text-sm font-medium mb-2">${idx + 1}. ${item.item}</p>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="px-2 py-1 text-xs font-bold rounded ${item.status === 'ok' ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800'}">${statusLabel}</span>
+                </div>
+                ${item.status === 'tidak_ok' && item.capa ? `
+                    <div class="mt-2 p-2 bg-white rounded border border-red-200">
+                        <p class="text-xs font-medium text-red-700 mb-1">CAPA:</p>
+                        <p class="text-sm text-gray-800">${item.capa}</p>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    }).join('');
+    
+    // Hide save button, show close only
+    const modalContent = document.querySelector('#modalChecklist .p-6:last-child');
+    const buttons = modalContent.querySelector('.mt-6');
+    buttons.innerHTML = `
+        <button onclick="closeChecklistDetailModal()" class="w-full bg-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-400">
+            Tutup
+        </button>
+    `;
+    
+    openModal('modalChecklist');
+}
+
+function closeChecklistDetailModal() {
+    document.getElementById('checklistPIC').disabled = false;
+    closeModal('modalChecklist');
+}
+
+// Update loadModuleData untuk checklist
+// Cari di fungsi loadModuleData(module) dan ganti case 'checklist'
+// case 'checklist': loadChecklistHistory(); break;
+
+
+        
 
         // ==================== REJECT ====================
         function loadReject() {
@@ -4460,23 +4924,59 @@
         }
 
         // ==================== SPREADSHEET ====================
-        function saveSpreadsheetConfig() {
-            const config = {
-                spreadsheetId: document.getElementById('spreadsheetId').value,
-                apiKey: document.getElementById('apiKey').value,
-                webAppUrl: document.getElementById('webAppUrl').value
-            };
-            localStorage.setItem('spreadsheetConfig', JSON.stringify(config));
-            showToast('Konfigurasi berhasil disimpan!');
+        function loadSpreadsheetModule() {
+            const webAppUrl = localStorage.getItem('webAppUrl') || '';
+            const spreadsheetId = localStorage.getItem('spreadsheetId') || '';
+            const apiKey = localStorage.getItem('apiKey') || '';
+            
+            if (document.getElementById('webAppUrl')) document.getElementById('webAppUrl').value = webAppUrl;
+            if (document.getElementById('spreadsheetId')) document.getElementById('spreadsheetId').value = spreadsheetId;
+            if (document.getElementById('apiKey')) document.getElementById('apiKey').value = apiKey;
         }
 
-        function testConnection() {
-            const config = JSON.parse(localStorage.getItem('spreadsheetConfig') || '{}');
-            if (!config.webAppUrl) {
+        function saveSpreadsheetConfig() {
+            const webAppUrl = document.getElementById('webAppUrl').value.trim();
+            const spreadsheetId = document.getElementById('spreadsheetId').value.trim();
+            const apiKey = document.getElementById('apiKey').value.trim();
+            
+            localStorage.setItem('webAppUrl', webAppUrl);
+            localStorage.setItem('spreadsheetId', spreadsheetId);
+            localStorage.setItem('apiKey', apiKey);
+            
+            showToast('Konfigurasi berhasil disimpan!');
+            updateDatabaseStatus(!!webAppUrl);
+        }
+
+        async function testConnection() {
+            const webAppUrl = localStorage.getItem('webAppUrl') || '';
+            if (!webAppUrl) {
                 showToast('Masukkan Web App URL terlebih dahulu!');
                 return;
             }
+            
             showToast('Menguji koneksi...');
+            
+            try {
+                const response = await fetch(webAppUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'load', table: 'users', filters: {} })
+                });
+                
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast(`✅ Koneksi berhasil! ${result.data.length} users`);
+                    updateDatabaseStatus(true);
+                } else {
+                    showToast(`❌ Error: ${result.error}`);
+                    updateDatabaseStatus(false);
+                }
+            } catch (error) {
+                showToast(`❌ Koneksi gagal: ${error.message}`);
+                updateDatabaseStatus(false);
+            }
         }
 
         // Checklist export & template functions removed — exports use Google Forms / Apps Script now
